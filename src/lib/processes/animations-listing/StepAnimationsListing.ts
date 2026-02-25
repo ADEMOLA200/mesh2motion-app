@@ -1,6 +1,5 @@
 import { UI } from '../../UI.ts'
 import { AnimationPlayer } from './AnimationPlayer.ts'
-import { ModalDialog } from '../../ModalDialog.ts'
 
 import {
   type AnimationClip, AnimationMixer, type SkinnedMesh, type AnimationAction, Object3D
@@ -65,14 +64,15 @@ export class StepAnimationsListing extends EventTarget {
 
     this.custom_animation_importer = new CustomAnimationImporter(
       this.animation_loader,
-      () => this.skinned_meshes_to_animate,
-      () => this.skeleton_scale,
-      () => this.is_loading_default_animations,
-      (new_clips: TransformedAnimationClipPair[]) => {
-        this.animation_clips_loaded.push(...new_clips)
-        this.onAllAnimationsLoaded()
-      }
+      this.skinned_meshes_to_animate,
+      this.skeleton_scale
     )
+
+    this.custom_animation_importer.addEventListener('import-success', (event: Event) => {
+      const new_clips = (event as CustomEvent<TransformedAnimationClipPair[]>).detail
+      this.animation_clips_loaded.push(...new_clips)
+      this.onAllAnimationsLoaded()
+    })
   }
 
   public begin (skeleton_type: SkeletonType, skeleton_scale: number): void {
@@ -95,6 +95,8 @@ export class StepAnimationsListing extends EventTarget {
     }
 
     this.reset_step_data()
+    this.custom_animation_importer.set_import_context(this.skinned_meshes_to_animate, this.skeleton_scale)
+    this.custom_animation_importer.set_enabled(!this.is_loading_default_animations)
 
     this.skeleton_type = skeleton_type
 
@@ -115,8 +117,8 @@ export class StepAnimationsListing extends EventTarget {
     this.animation_mixer = new AnimationMixer(new Object3D())
     this.current_playing_index = 0
     this.animation_player.clear_animation()
+    this.custom_animation_importer.set_import_context(this.skinned_meshes_to_animate, this.skeleton_scale)
   }
-
 
   public mixer (): AnimationMixer {
     return this.animation_mixer
@@ -138,14 +140,13 @@ export class StepAnimationsListing extends EventTarget {
 
   public load_and_apply_default_animation_to_skinned_mesh (final_skinned_meshes: SkinnedMesh[]): void {
     this.skinned_meshes_to_animate = final_skinned_meshes
+    this.custom_animation_importer.set_import_context(this.skinned_meshes_to_animate, this.skeleton_scale)
 
     // Set the animations file path on the loader
     this.animation_loader.set_animations_file_path(this.animations_file_path)
 
     this.is_loading_default_animations = true
-    if (this.ui.dom_import_animations_button != null) {
-      this.ui.dom_import_animations_button.disabled = true
-    }
+    this.custom_animation_importer.set_enabled(false)
 
     // Reset the animation clips loaded
     this.animation_clips_loaded = []
@@ -161,18 +162,14 @@ export class StepAnimationsListing extends EventTarget {
       .catch((error: Error) => {
         console.error('Failed to load animations:', error)
         this.is_loading_default_animations = false
-        if (this.ui.dom_import_animations_button != null) {
-          this.ui.dom_import_animations_button.disabled = false
-        }
+        this.custom_animation_importer.set_enabled(true)
         // You could emit an error event here or show a user-friendly message
       })
   }
 
   private onAllAnimationsLoaded (): void {
     this.is_loading_default_animations = false
-    if (this.ui.dom_import_animations_button != null) {
-      this.ui.dom_import_animations_button.disabled = false
-    }
+    this.custom_animation_importer.set_enabled(true)
     // sort all animation names alphabetically
     this.animation_clips_loaded.sort((a: TransformedAnimationClipPair, b: TransformedAnimationClipPair) => {
       if (a.display_animation_clip.name < b.display_animation_clip.name) { return -1 }

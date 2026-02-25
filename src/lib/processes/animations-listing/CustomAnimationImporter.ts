@@ -1,97 +1,106 @@
 import { UI } from '../../UI.ts'
 import { ModalDialog } from '../../ModalDialog.ts'
 import { type SkinnedMesh } from 'three'
-import { AnimationLoader, NoAnimationsError, IncompatibleSkeletonError, LoadError } from './AnimationLoader.ts'
+import { type AnimationLoader, NoAnimationsError, IncompatibleSkeletonError, LoadError } from './AnimationLoader.ts'
 import { type TransformedAnimationClipPair } from './interfaces/TransformedAnimationClipPair.ts'
 
 /**
  * Handles the importing of custom animations from GLB files.
  * This class encapsulates the UI and logic for the import process.
  */
-export class CustomAnimationImporter {
+export class CustomAnimationImporter extends EventTarget {
   private readonly ui: UI
   private readonly animation_loader: AnimationLoader
-  private readonly get_skinned_meshes: () => SkinnedMesh[]
-  private readonly get_skeleton_scale: () => number
-  private readonly is_loading_default_animations: () => boolean
-  private readonly on_import_success: (new_clips: TransformedAnimationClipPair[]) => void
+  private skinned_meshes_to_animate: SkinnedMesh[]
+  private skeleton_scale: number
+  private enabled: boolean = true
 
   constructor (
     animation_loader: AnimationLoader,
-    get_skinned_meshes: () => SkinnedMesh[],
-    get_skeleton_scale: () => number,
-    is_loading_default_animations: () => boolean,
-    on_import_success: (new_clips: TransformedAnimationClipPair[]) => void
+    skinned_meshes_to_animate: SkinnedMesh[],
+    skeleton_scale: number
   ) {
+    super()
     this.ui = UI.getInstance()
     this.animation_loader = animation_loader
-    this.get_skinned_meshes = get_skinned_meshes
-    this.get_skeleton_scale = get_skeleton_scale
-    this.is_loading_default_animations = is_loading_default_animations
-    this.on_import_success = on_import_success
+    this.skinned_meshes_to_animate = skinned_meshes_to_animate
+    this.skeleton_scale = skeleton_scale
+  }
+
+  public set_import_context (skinned_meshes_to_animate: SkinnedMesh[], skeleton_scale: number): void {
+    this.skinned_meshes_to_animate = skinned_meshes_to_animate
+    this.skeleton_scale = skeleton_scale
+  }
+
+  public set_enabled (enabled: boolean): void {
+    this.enabled = enabled
+    if (this.ui.dom_import_animations_button != null) {
+      this.ui.dom_import_animations_button.disabled = !enabled
+    }
+  }
+
+  public is_enabled (): boolean {
+    return this.enabled
   }
 
   public add_event_listeners (): void {
     this.ui.dom_import_animations_button?.addEventListener('click', () => {
-      if (this.ui.dom_import_animations_button?.disabled === true || this.is_loading_default_animations()) {
+      if (!this.is_enabled()) {
         return
       }
       this.ui.dom_import_animations_input?.click()
     })
 
-    this.ui.dom_import_animations_input?.addEventListener('change', async (event) => {
-      if (this.ui.dom_import_animations_button?.disabled === true || this.is_loading_default_animations()) {
-        return
-      }
-      const input = event.target as HTMLInputElement
-      const files = input.files
-      if (files === null || files.length === 0) {
-        return
-      }
-
-      const import_button = this.ui.dom_import_animations_button
-      const previous_disabled_state: boolean | undefined = import_button?.disabled
-      if (import_button != null) {
-        import_button.disabled = true
-      }
-
-      try {
-        for (const file of Array.from(files)) {
-          const file_name = file.name.toLowerCase()
-          if (!file_name.endsWith('.glb')) {
-            new ModalDialog('Unsupported file type. Please select a GLB file.', 'Error').show()
-            continue
-          }
-          await this.import_animation_glb(file)
-        }
-      } finally {
-        input.value = ''
-        if (import_button != null && previous_disabled_state !== undefined) {
-          import_button.disabled = previous_disabled_state
-        }
-      }
+    this.ui.dom_import_animations_input?.addEventListener('change', (event) => {
+      void this.handle_import_animations_input_change(event)
     })
+  }
+
+  private async handle_import_animations_input_change (event: Event): Promise<void> {
+    if (!this.is_enabled()) {
+      return
+    }
+    const input = event.target as HTMLInputElement
+    const files = input.files
+    if (files === null || files.length === 0) {
+      return
+    }
+
+    this.set_enabled(false)
+
+    try {
+      for (const file of Array.from(files)) {
+        const file_name = file.name.toLowerCase()
+        if (!file_name.endsWith('.glb')) {
+          new ModalDialog('Unsupported file type. Please select a GLB file.', 'Error').show()
+          continue
+        }
+        await this.import_animation_glb(file)
+      }
+    } finally {
+      input.value = ''
+      this.set_enabled(true)
+    }
   }
 
   private async import_animation_glb (file: File): Promise<{ success: boolean, clipCount: number }> {
     try {
       const new_animation_clips = await this.animation_loader.load_animations_from_file(
         file,
-        this.get_skinned_meshes(),
-        this.get_skeleton_scale()
+        this.skinned_meshes_to_animate,
+        this.skeleton_scale
       )
 
-      this.on_import_success(new_animation_clips)
+      this.dispatchEvent(new CustomEvent<TransformedAnimationClipPair[]>('import-success', {
+        detail: new_animation_clips
+      }))
 
-      // Show success message only for user imports (not default animations)
-      if (!this.is_loading_default_animations()) {
-        const animation_count = new_animation_clips.length
-        const animation_word = animation_count === 1 ? 'animation' : 'animations'
-        new ModalDialog(
-          'Import Success',
-          `${animation_count} ${animation_word} Imported successfully`
-        ).show()
-      }
+      const animation_count = new_animation_clips.length
+      const animation_word = animation_count === 1 ? 'animation' : 'animations'
+      new ModalDialog(
+        'Import Success',
+        `${animation_count} ${animation_word} Imported successfully`
+      ).show()
 
       return { success: true, clipCount: new_animation_clips.length }
     } catch (error) {
