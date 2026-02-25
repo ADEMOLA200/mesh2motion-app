@@ -3,7 +3,7 @@ import { ModalDialog } from '../../ModalDialog.ts'
 import { type AnimationClip, type SkinnedMesh } from 'three'
 import { type AnimationLoader } from './AnimationLoader.ts'
 import { NoAnimationsError, IncompatibleSkeletonError, LoadError } from './AnimationImportErrors.ts'
-import { validate_animation_bones_match } from './AnimationValidation.ts'
+import CustomAnimationValidation from './CustomAnimationValidation.ts'
 import { type TransformedAnimationClipPair } from './interfaces/TransformedAnimationClipPair.ts'
 
 /**
@@ -15,7 +15,9 @@ export class CustomAnimationImporter extends EventTarget {
   private readonly animation_loader: AnimationLoader
   private skinned_meshes_to_animate: SkinnedMesh[]
   private skeleton_scale: number
+  private import_context_provider: (() => { skinned_meshes_to_animate: SkinnedMesh[], skeleton_scale: number }) | null = null
   private enabled: boolean = true
+  private has_added_event_listeners: boolean = false
 
   constructor (
     animation_loader: AnimationLoader,
@@ -27,11 +29,16 @@ export class CustomAnimationImporter extends EventTarget {
     this.animation_loader = animation_loader
     this.skinned_meshes_to_animate = skinned_meshes_to_animate
     this.skeleton_scale = skeleton_scale
+    this.add_event_listeners()
   }
 
   public set_import_context (skinned_meshes_to_animate: SkinnedMesh[], skeleton_scale: number): void {
     this.skinned_meshes_to_animate = skinned_meshes_to_animate
     this.skeleton_scale = skeleton_scale
+  }
+
+  public set_import_context_provider (provider: () => { skinned_meshes_to_animate: SkinnedMesh[], skeleton_scale: number }): void {
+    this.import_context_provider = provider
   }
 
   public set_enabled (enabled: boolean): void {
@@ -45,23 +52,32 @@ export class CustomAnimationImporter extends EventTarget {
     return this.enabled
   }
 
-  public add_event_listeners (): void {
+  private add_event_listeners (): void {
+    if (this.has_added_event_listeners) {
+      return
+    }
+
     this.ui.dom_import_animations_button?.addEventListener('click', () => {
       if (!this.is_enabled()) {
         return
       }
+      this.sync_import_context_from_provider()
       this.ui.dom_import_animations_input?.click()
     })
 
     this.ui.dom_import_animations_input?.addEventListener('change', (event) => {
       void this.handle_import_animations_input_change(event)
     })
+
+    this.has_added_event_listeners = true
   }
 
   private async handle_import_animations_input_change (event: Event): Promise<void> {
     if (!this.is_enabled()) {
       return
     }
+
+    this.sync_import_context_from_provider()
 
     // potentially allow multiple files
     const input = event.target as HTMLInputElement
@@ -87,6 +103,15 @@ export class CustomAnimationImporter extends EventTarget {
     }
   }
 
+  private sync_import_context_from_provider (): void {
+    if (this.import_context_provider === null) {
+      return
+    }
+
+    const { skinned_meshes_to_animate, skeleton_scale } = this.import_context_provider()
+    this.set_import_context(skinned_meshes_to_animate, skeleton_scale)
+  }
+
   private async import_animation_glb (file: File): Promise<{ success: boolean, clipCount: number }> {
     try {
       const new_animation_clips = await this.animation_loader.load_animations_from_file(
@@ -94,7 +119,9 @@ export class CustomAnimationImporter extends EventTarget {
         this.skeleton_scale
       )
 
-      this.validate_loaded_animation_clips(new_animation_clips)
+      // Validate custom animations against our target skeleton
+      const clips_to_validate: AnimationClip[] = new_animation_clips.map((clip_pair) => clip_pair.display_animation_clip)
+      CustomAnimationValidation.validate_animation_bones_match(clips_to_validate, this.skinned_meshes_to_animate)
 
       this.dispatchEvent(new CustomEvent<TransformedAnimationClipPair[]>('import-success', {
         detail: new_animation_clips
@@ -146,7 +173,6 @@ export class CustomAnimationImporter extends EventTarget {
   }
 
   private validate_loaded_animation_clips (new_animation_clips: TransformedAnimationClipPair[]): void {
-    const clips_to_validate: AnimationClip[] = new_animation_clips.map((clip_pair) => clip_pair.display_animation_clip)
-    validate_animation_bones_match(clips_to_validate, this.skinned_meshes_to_animate)
+
   }
 }

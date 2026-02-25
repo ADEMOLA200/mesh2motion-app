@@ -68,6 +68,16 @@ export class StepAnimationsListing extends EventTarget {
       this.skeleton_scale
     )
 
+    // fancy way to bind the import context by implementing the function
+    // from the CustomAnimationImporter and passing in the current context values. this allows
+    // the CustomAnimationImporter to be decoupled from the StepAnimationsListing
+    this.custom_animation_importer.set_import_context_provider(() => {
+      return {
+        skinned_meshes_to_animate: this.skinned_meshes_to_animate,
+        skeleton_scale: this.skeleton_scale
+      }
+    })
+
     this.custom_animation_importer.addEventListener('import-success', (event: Event) => {
       const new_clips = (event as CustomEvent<TransformedAnimationClipPair[]>).detail
       this.animation_clips_loaded.push(...new_clips)
@@ -95,7 +105,6 @@ export class StepAnimationsListing extends EventTarget {
     }
 
     this.reset_step_data()
-    this.custom_animation_importer.set_import_context(this.skinned_meshes_to_animate, this.skeleton_scale)
     this.custom_animation_importer.set_enabled(!this.is_loading_default_animations)
 
     this.skeleton_type = skeleton_type
@@ -117,7 +126,6 @@ export class StepAnimationsListing extends EventTarget {
     this.animation_mixer = new AnimationMixer(new Object3D())
     this.current_playing_index = 0
     this.animation_player.clear_animation()
-    this.custom_animation_importer.set_import_context(this.skinned_meshes_to_animate, this.skeleton_scale)
   }
 
   public mixer (): AnimationMixer {
@@ -140,7 +148,6 @@ export class StepAnimationsListing extends EventTarget {
 
   public load_and_apply_default_animation_to_skinned_mesh (final_skinned_meshes: SkinnedMesh[]): void {
     this.skinned_meshes_to_animate = final_skinned_meshes
-    this.custom_animation_importer.set_import_context(this.skinned_meshes_to_animate, this.skeleton_scale)
 
     // Set the animations file path on the loader
     this.animation_loader.set_animations_file_path(this.animations_file_path)
@@ -377,8 +384,6 @@ export class StepAnimationsListing extends EventTarget {
       this.rebuild_warped_animations()
       this.play_animation(this.current_playing_index)
     })
-
-    this.custom_animation_importer.add_event_listeners()
 
     // helps ensure we don't add event listeners multiple times
     this.has_added_event_listeners = true
