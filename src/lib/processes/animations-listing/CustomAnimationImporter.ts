@@ -1,7 +1,9 @@
 import { UI } from '../../UI.ts'
 import { ModalDialog } from '../../ModalDialog.ts'
-import { type SkinnedMesh } from 'three'
-import { type AnimationLoader, NoAnimationsError, IncompatibleSkeletonError, LoadError } from './AnimationLoader.ts'
+import { type AnimationClip, type SkinnedMesh } from 'three'
+import { type AnimationLoader } from './AnimationLoader.ts'
+import { NoAnimationsError, IncompatibleSkeletonError, LoadError } from './AnimationImportErrors.ts'
+import { validate_animation_bones_match } from './AnimationValidation.ts'
 import { type TransformedAnimationClipPair } from './interfaces/TransformedAnimationClipPair.ts'
 
 /**
@@ -60,13 +62,15 @@ export class CustomAnimationImporter extends EventTarget {
     if (!this.is_enabled()) {
       return
     }
+
+    // potentially allow multiple files
     const input = event.target as HTMLInputElement
     const files = input.files
     if (files === null || files.length === 0) {
       return
     }
 
-    this.set_enabled(false)
+    this.set_enabled(false) // disable to prevent double-clicks during processing
 
     try {
       for (const file of Array.from(files)) {
@@ -87,9 +91,10 @@ export class CustomAnimationImporter extends EventTarget {
     try {
       const new_animation_clips = await this.animation_loader.load_animations_from_file(
         file,
-        this.skinned_meshes_to_animate,
         this.skeleton_scale
       )
+
+      this.validate_loaded_animation_clips(new_animation_clips)
 
       this.dispatchEvent(new CustomEvent<TransformedAnimationClipPair[]>('import-success', {
         detail: new_animation_clips
@@ -104,29 +109,44 @@ export class CustomAnimationImporter extends EventTarget {
 
       return { success: true, clipCount: new_animation_clips.length }
     } catch (error) {
-      console.error('Failed to import animations:', error)
+      return this.handle_import_error(error)
+    }
+  }
 
-      if (error instanceof NoAnimationsError) {
-        new ModalDialog('Import Error', 'No animations found in that glb file').show()
-        return { success: false, clipCount: 0 }
-      }
+  private handle_import_error (error: unknown): { success: boolean, clipCount: number } {
+    console.error('Failed to import animations:', error)
 
-      if (error instanceof IncompatibleSkeletonError) {
-        const error_message = error.message === 'bone_count_mismatch'
-          ? 'Bone count mismatch'
-          : 'Bone names don\'t match'
-        new ModalDialog('Import Error', error_message).show()
-        return { success: false, clipCount: 0 }
-      }
-
-      if (error instanceof LoadError) {
-        new ModalDialog('Import Error', 'failed to load the animation file').show()
-        return { success: false, clipCount: 0 }
-      }
-
-      // Unknown error
-      new ModalDialog('Import Error', 'failed to import animations from the glb file').show()
+    if (error instanceof NoAnimationsError) {
+      new ModalDialog('Import Error', 'No animations found in that glb file').show()
       return { success: false, clipCount: 0 }
     }
+
+    if (error instanceof IncompatibleSkeletonError) {
+      const error_message = this.get_bone_validation_error_message(error)
+      new ModalDialog('Import Error', error_message).show()
+      return { success: false, clipCount: 0 }
+    }
+
+    if (error instanceof LoadError) {
+      new ModalDialog('Import Error', 'failed to load the animation file').show()
+      return { success: false, clipCount: 0 }
+    }
+
+    // Unknown error
+    new ModalDialog('Import Error', 'failed to import animations from the glb file').show()
+    return { success: false, clipCount: 0 }
+  }
+
+  private get_bone_validation_error_message (error: IncompatibleSkeletonError): string {
+    if (error.message === 'bone_count_mismatch' || error.message === 'bone count mismatch') {
+      return 'Bone count mismatch'
+    }
+
+    return 'Bone names don\'t match'
+  }
+
+  private validate_loaded_animation_clips (new_animation_clips: TransformedAnimationClipPair[]): void {
+    const clips_to_validate: AnimationClip[] = new_animation_clips.map((clip_pair) => clip_pair.display_animation_clip)
+    validate_animation_bones_match(clips_to_validate, this.skinned_meshes_to_animate)
   }
 }
