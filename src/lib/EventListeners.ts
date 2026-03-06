@@ -85,6 +85,15 @@ export class EventListeners {
           const selected_bone = this.bootstrap.transform_controls.object
           if (selected_bone !== undefined && selected_bone !== null) {
             this.bootstrap.edit_skeleton_step.record_children_initial_positions(selected_bone as Bone)
+
+            // When mirror mode is also active, record the mirror bone's children
+            // so they can also be kept in place during independent movement
+            if (this.bootstrap.edit_skeleton_step.is_mirror_mode_enabled()) {
+              const mirror_bone = this.bootstrap.edit_skeleton_step.find_mirror_bone(selected_bone as Bone)
+              if (mirror_bone !== undefined) {
+                this.bootstrap.edit_skeleton_step.record_mirror_bone_children_initial_positions(mirror_bone)
+              }
+            }
           }
         }
       }

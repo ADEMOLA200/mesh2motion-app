@@ -217,12 +217,42 @@ export class StepEditSkeleton extends EventTarget {
   }
 
   /**
+   * Find the mirrored counterpart of a bone by stripping side suffixes and
+   * matching against the rest of the skeleton. Returns undefined for centre-line
+   * bones (spine, neck, head, etc.) that have no counterpart.
+   */
+  public find_mirror_bone (bone: Bone): Bone | undefined {
+    const base_name = Utility.calculate_bone_base_name(bone.name)
+    return this.threejs_skeleton.bones.find((candidate) => {
+      const candidate_base = Utility.calculate_bone_base_name(candidate.name)
+      return candidate_base === base_name && candidate.name !== bone.name
+    })
+  }
+
+  /**
    * Record the current world positions of the direct bone children.
-   * Call this when dragging starts so children can be restored to
+   * Clears any previously recorded positions, then stores the children of the
+   * given bone. Call this when dragging starts so children can be restored to
    * these positions during independent bone movement.
+   * Use record_mirror_bone_children_initial_positions() afterwards when mirror
+   * mode is also active to append the mirror bone's children to the same map.
    */
   public record_children_initial_positions (bone: Bone): void {
     this._children_initial_world_positions.clear()
+    this._append_children_world_positions(bone)
+  }
+
+  /**
+   * Append the current world positions of a bone's direct children to the
+   * existing position map without clearing it. Use this after
+   * record_children_initial_positions() to also track the mirror bone's
+   * children when both mirror mode and independent bone movement are active.
+   */
+  public record_mirror_bone_children_initial_positions (bone: Bone): void {
+    this._append_children_world_positions(bone)
+  }
+
+  private _append_children_world_positions (bone: Bone): void {
     bone.children.forEach((child) => {
       if ('isBone' in child && child.isBone) {
         const world_pos = new Vector3()
@@ -455,27 +485,10 @@ export class StepEditSkeleton extends EventTarget {
   }
 
   public apply_mirror_mode (selected_bone: Bone, transform_type: string): void {
-    // if we are on the positive side mirror mode is enabled
-    // we need to change the position of the bone on the other side of the mirror
-
-    // first step is to find the base bone name
-    // strip out the left/right and _L/_R from the name
-    // mixamo is a common skeleton that prefixes everything with mixamorig_, so remove that
-    const base_bone_name = Utility.calculate_bone_base_name(selected_bone.name)
-
-    // Find another bone that has the same base name
-    // that should be the mirror
-    let mirror_bone: Bone | undefined
-
-    this.threejs_skeleton.bones.forEach((bone) => {
-      const bone_name_to_compare = Utility.calculate_bone_base_name(bone.name)
-      if (bone_name_to_compare === base_bone_name && bone.name !== selected_bone.name) {
-        mirror_bone = bone
-      }
-    })
+    const mirror_bone = this.find_mirror_bone(selected_bone)
 
     if (mirror_bone === undefined) {
-      return // we probably something along the axis (head, neck, spine)
+      return // centre-line bone (head, neck, spine) — no counterpart
     }
 
     if (transform_type === 'translate') {
@@ -498,6 +511,7 @@ export class StepEditSkeleton extends EventTarget {
       mirror_bone.quaternion.setFromEuler(euler)
     }
 
+    // updateWorldMatrix(updateParents, updateChildren) - propagate changes up and down the hierarchy
     mirror_bone.updateWorldMatrix(true, true)
   }
 
