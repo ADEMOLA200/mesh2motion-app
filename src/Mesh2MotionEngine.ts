@@ -251,6 +251,12 @@ export class Mesh2MotionEngine {
       const selected_bone: Bone = this.transform_controls.object as Bone
       this.edit_skeleton_step.apply_mirror_mode(selected_bone, this.transform_controls.getMode())
     }
+
+    if (this.edit_skeleton_step.is_independent_bone_movement_enabled() &&
+        this.transform_controls.getMode() === 'translate') {
+      const selected_bone: Bone = this.transform_controls.object as Bone
+      this.edit_skeleton_step.apply_independent_bone_movement(selected_bone)
+    }
   }
 
   private show_skin_failure_message (bone_names_with_errors: string[], error_point_positions: Vector3[]): void {

@@ -37,6 +37,8 @@ export class StepEditSkeleton extends EventTarget {
   // Skeleton created from the armature that Three.js uses
   private threejs_skeleton: Skeleton = new Skeleton()
   private mirror_mode_enabled: boolean = true
+  private independent_bone_movement_enabled: boolean = false
+  private _children_initial_world_positions: Map<string, Vector3> = new Map()
   private skinning_algorithm: string | null = null
   private show_debug: boolean = true
 
@@ -206,6 +208,48 @@ export class StepEditSkeleton extends EventTarget {
     return this.mirror_mode_enabled
   }
 
+  public set_independent_bone_movement_enabled (value: boolean): void {
+    this.independent_bone_movement_enabled = value
+  }
+
+  public is_independent_bone_movement_enabled (): boolean {
+    return this.independent_bone_movement_enabled
+  }
+
+  /**
+   * Record the current world positions of the direct bone children.
+   * Call this when dragging starts so children can be restored to
+   * these positions during independent bone movement.
+   */
+  public record_children_initial_positions (bone: Bone): void {
+    this._children_initial_world_positions.clear()
+    bone.children.forEach((child) => {
+      if ('isBone' in child && child.isBone) {
+        const world_pos = new Vector3()
+        child.getWorldPosition(world_pos)
+        this._children_initial_world_positions.set(child.uuid, world_pos.clone())
+      }
+    })
+  }
+
+  /**
+   * Keep direct bone children at their initial world positions while the
+   * parent bone is being moved. Call this each frame during a drag when
+   * independent bone movement mode is active.
+   */
+  public apply_independent_bone_movement (bone: Bone): void {
+    bone.children.forEach((child) => {
+      if (!('isBone' in child) || !child.isBone) { return }
+      const initial_world_pos = this._children_initial_world_positions.get(child.uuid)
+      if (initial_world_pos === undefined) { return }
+      const local_pos = initial_world_pos.clone()
+      bone.worldToLocal(local_pos)
+      child.position.copy(local_pos)
+      // updateWorldMatrix(updateParents, updateChildren) - propagate changes up and down the hierarchy
+      child.updateWorldMatrix(true, true)
+    })
+  }
+
   public algorithm (): string | null {
     return this.skinning_algorithm
   }
@@ -256,6 +300,12 @@ export class StepEditSkeleton extends EventTarget {
       this.ui.dom_mirror_skeleton_checkbox.addEventListener('change', (event) => {
         // mirror skeleton movements along the X axis
         this.set_mirror_mode_enabled(event.target.checked)
+      })
+    }
+
+    if (this.ui.dom_independent_bone_movement_checkbox !== null) {
+      this.ui.dom_independent_bone_movement_checkbox.addEventListener('change', (event) => {
+        this.set_independent_bone_movement_enabled(event.target.checked)
       })
     }
 
