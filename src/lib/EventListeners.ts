@@ -40,6 +40,12 @@ export class EventListeners {
       this.bootstrap.show_contributors_dialog()
     })
 
+    // Learn link clicking brings up learning resources
+    this.bootstrap.ui.dom_learn_link?.addEventListener('click', (event: MouseEvent) => {
+      event.preventDefault()
+      this.bootstrap.show_learning_resources_dialog()
+    })
+
     // listen for view helper changes
     document.getElementById('view-control-hitbox')?.addEventListener('pointerdown', (event: PointerEvent) => {
       if (this.bootstrap.view_helper.handleClick(event)) {

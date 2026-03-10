@@ -17,8 +17,17 @@
   padding: 2em;
   border-radius: 8px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.2);
-    max-width: 41rem;
+  max-width: 41rem;
+  max-height: 90vh;
   text-align: center;
+}
+
+.modal-dialog-body {
+  max-height: 65vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  background: var(--bg-alternate);
+  border-radius: 5px;
 }
 
 .modal-dialog-content p {
@@ -27,7 +36,7 @@
 
 .modal-dialog-content h2 {
   margin: 0;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   color: var(--text-primary);
   font-size: 2.0rem;
   display: block;
@@ -44,4 +53,26 @@
   margin-top: 1em;
   padding: 0.5em 1.5em;
   font-size: 1em;
+}
+
+.learning-resources-content {
+  text-align: left;
+}
+
+.learning-video-list {
+  display: grid;
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+.learning-video-item {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.8rem;
+}
+
+.learning-video-item iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
 }

@@ -92,6 +92,7 @@ export class UI {
 
   dom_build_version: HTMLElement | null = null
   dom_attribution_link: HTMLAnchorElement | null = null
+  dom_learn_link: HTMLAnchorElement | null = null
 
   private constructor () {
     this.initialize_dom_elements()
@@ -202,6 +203,7 @@ export class UI {
     this.dom_build_version = document.querySelector('#build-version')
 
     this.dom_attribution_link = document.querySelector('#attribution-link')
+    this.dom_learn_link = document.querySelector('#learn-link')
 
     // UI for exporting the animation
     this.dom_export_button_hidden_link = document.querySelector('#download-hidden-link')

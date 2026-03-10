@@ -603,4 +603,8 @@ export class Mesh2MotionEngine {
   public show_contributors_dialog (): void {
     new ModalDialog('Contributors', Generators.get_contributors_list()).show()
   }
+
+  public show_learning_resources_dialog (): void {
+    new ModalDialog('Learning Resources', Generators.get_learning_resources_html()).show()
+  }
 } // end Mesh2Motion Engine
