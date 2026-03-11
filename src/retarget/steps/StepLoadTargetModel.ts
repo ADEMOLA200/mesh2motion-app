@@ -30,27 +30,29 @@ export class StepLoadTargetModel extends EventTarget {
     return this.retargetable_meshes
   }
 
-  public get_unique_target_bones (): Map<string, Bone> {
-    const unique_bones: Map<string, Bone> = new Map<string, Bone>()
+  public get_first_skinned_mesh_bones (): Map<string, Bone> {
+    const bones: Map<string, Bone> = new Map<string, Bone>()
 
-    this.retargetable_meshes?.traverse((child) => {
-      if (child.type !== 'SkinnedMesh') {
-        return
+    if (this.retargetable_meshes === null) {
+      return bones
+    }
+
+    let first_skinned_mesh: SkinnedMesh | null = null
+    this.retargetable_meshes.traverse((child) => {
+      if (first_skinned_mesh === null && child.type === 'SkinnedMesh') {
+        first_skinned_mesh = child as SkinnedMesh
       }
-
-      const skinned_mesh = child as SkinnedMesh
-      skinned_mesh.skeleton.bones.forEach((bone) => {
-        unique_bones.set(bone.uuid, bone)
-      })
     })
 
-    return unique_bones
-  }
+    if (first_skinned_mesh === null) {
+      return bones
+    }
 
-  public show_target_bone_tree_dialog (): void {
-    this.target_bone_tree_dialog.set_target_bones(this.get_unique_target_bones())
-    this.target_bone_tree_dialog.set_target_skinned_mesh_count(this.get_target_skinned_mesh_count())
-    this.target_bone_tree_dialog.show()
+    first_skinned_mesh.skeleton.bones.forEach((bone) => {
+      bones.set(bone.uuid, bone)
+    })
+
+    return bones
   }
 
   private add_event_listeners (): void {
@@ -138,7 +140,7 @@ export class StepLoadTargetModel extends EventTarget {
 
             // Save the final retargetable meshes and dispatch event
             this.retargetable_meshes = retargetable_meshes
-            this.target_bone_tree_dialog.set_target_bones(this.get_unique_target_bones())
+            this.target_bone_tree_dialog.set_target_bones(this.get_first_skinned_mesh_bones())
             this.target_bone_tree_dialog.set_target_skinned_mesh_count(this.get_target_skinned_mesh_count())
             this.dispatchEvent(new CustomEvent('target-model-loaded'))
           }
