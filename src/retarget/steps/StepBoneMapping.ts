@@ -1,9 +1,8 @@
-import { type Bone, type Scene, type SkinnedMesh } from 'three'
+import { type Scene, type SkinnedMesh } from 'three'
 import { BoneAutoMapper } from '../bone-automap/BoneAutoMapper.ts'
 import { MixamoMapper } from '../bone-automap/MixamoMapper.ts'
 import { AnimationRetargetService } from '../AnimationRetargetService.ts'
 import { Mesh2MotionMapper } from '../bone-automap/Mesh2MotionMapper.ts'
-import { ModalDialog } from '../../lib/ModalDialog.ts'
 
 // when we are auto-mapping, keep track of what rig type we matched target against
 export enum TargetBoneMappingType {
@@ -66,10 +65,6 @@ export class StepBoneMapping extends EventTarget {
       // Add event listener for auto-map button
       this.auto_map_button?.addEventListener('click', () => {
         this.auto_map_bones()
-      })
-
-      this.view_bone_tree_button?.addEventListener('click', () => {
-        this.show_target_bone_tree_dialog()
       })
 
       this.has_added_event_listeners = true
@@ -248,80 +243,6 @@ export class StepBoneMapping extends EventTarget {
 
       this.target_bones_list?.appendChild(bone_item)
     })
-  }
-
-  private get_unique_target_bones (): Map<string, Bone> {
-    const unique_bones: Map<string, Bone> = new Map<string, Bone>()
-
-    AnimationRetargetService.getInstance().get_target_skinned_meshes().forEach((skinned_mesh) => {
-      skinned_mesh.skeleton.bones.forEach((bone) => {
-        unique_bones.set(bone.uuid, bone)
-      })
-    })
-
-    return unique_bones
-  }
-
-  private get_target_root_bones (unique_target_bones: Map<string, Bone>): Bone[] {
-    const roots: Bone[] = []
-
-    unique_target_bones.forEach((bone) => {
-      const parent = bone.parent
-      const has_bone_parent_in_target = parent !== null && parent.type === 'Bone' && unique_target_bones.has(parent.uuid)
-
-      if (!has_bone_parent_in_target) {
-        roots.push(bone)
-      }
-    })
-
-    return roots.sort((a, b) => a.name.localeCompare(b.name))
-  }
-
-  private show_target_bone_tree_dialog (): void {
-    const unique_target_bones = this.get_unique_target_bones()
-    const root_target_bones = this.get_target_root_bones(unique_target_bones)
-
-    if (unique_target_bones.size === 0) {
-      new ModalDialog('Target Skeleton Hierarchy', '<p>No target skeleton loaded.</p>', { customClass: 'bone-tree-modal' }).show()
-      return
-    }
-
-    const tree_html = root_target_bones
-      .map((root_bone) => this.create_target_bone_tree_html(root_bone, unique_target_bones))
-      .join('')
-
-    const content_html = `
-      <div class="bone-tree-dialog-summary">
-        <span>Total bones: ${unique_target_bones.size}</span>
-        <span>Root chains: ${root_target_bones.length}</span>
-      </div>
-      <ul class="bone-tree-dialog-list">
-        ${tree_html}
-      </ul>
-    `
-
-    new ModalDialog('Target Skeleton Hierarchy', content_html, { customClass: 'bone-tree-modal' }).show()
-  }
-
-  private create_target_bone_tree_html (bone: Bone, unique_target_bones: Map<string, Bone>): string {
-    const child_bones = bone.children
-      .filter((child): child is Bone => child.type === 'Bone' && unique_target_bones.has(child.uuid))
-      .sort((a, b) => a.name.localeCompare(b.name))
-
-    const children_html = child_bones.length > 0
-      ? `<ul>${child_bones.map((child_bone) => this.create_target_bone_tree_html(child_bone, unique_target_bones)).join('')}</ul>`
-      : ''
-
-    return `<li><span class="bone-tree-node-name">${this.escape_html(bone.name)}</span>${children_html}</li>`
-  }
-
-  private escape_html (value: string): string {
-    return value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
   }
 
   // Drag and drop event handlers

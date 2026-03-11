@@ -1,13 +1,15 @@
-import { type Bone, Box3, type Group, type Object3DEventMap, type Scene, type SkinnedMesh, Vector3 } from 'three'
-import { type Mesh2MotionEngine } from '../Mesh2MotionEngine.ts'
+import { type Bone, Box3, type Scene, type SkinnedMesh, Vector3 } from 'three'
+import { type Mesh2MotionEngine } from '../../Mesh2MotionEngine.ts'
 import { ModalDialog } from '../../lib/ModalDialog.ts'
 import { RetargetUtils } from '../RetargetUtils.ts'
+import { TargetBoneTreeDialog } from '../TargetBoneTreeDialog.ts'
 
 /**
  * Handles loading the target model (user-uploaded model) for retargeting
  */
 export class StepLoadTargetModel extends EventTarget {
   private readonly mesh2motion_engine: Mesh2MotionEngine
+  private readonly target_bone_tree_dialog: TargetBoneTreeDialog
   private file_input: HTMLInputElement | null = null
   private load_model_button: HTMLLabelElement | null = null
 
@@ -16,14 +18,37 @@ export class StepLoadTargetModel extends EventTarget {
   constructor (mesh2motion_engine: Mesh2MotionEngine) {
     super()
     this.mesh2motion_engine = mesh2motion_engine
+    this.target_bone_tree_dialog = new TargetBoneTreeDialog(() => this.get_unique_target_bones())
   }
 
   public begin (): void {
     this.add_event_listeners()
+    this.target_bone_tree_dialog.begin()
   }
 
   public get_retargetable_meshes (): Scene | null {
     return this.retargetable_meshes
+  }
+
+  public get_unique_target_bones (): Map<string, Bone> {
+    const unique_bones: Map<string, Bone> = new Map<string, Bone>()
+
+    this.retargetable_meshes?.traverse((child) => {
+      if (child.type !== 'SkinnedMesh') {
+        return
+      }
+
+      const skinned_mesh = child as SkinnedMesh
+      skinned_mesh.skeleton.bones.forEach((bone) => {
+        unique_bones.set(bone.uuid, bone)
+      })
+    })
+
+    return unique_bones
+  }
+
+  public show_target_bone_tree_dialog (): void {
+    this.target_bone_tree_dialog.show()
   }
 
   private add_event_listeners (): void {
