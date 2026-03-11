@@ -18,7 +18,7 @@ export class StepLoadTargetModel extends EventTarget {
   constructor (mesh2motion_engine: Mesh2MotionEngine) {
     super()
     this.mesh2motion_engine = mesh2motion_engine
-    this.target_bone_tree_dialog = new TargetBoneTreeDialog(() => this.get_unique_target_bones())
+    this.target_bone_tree_dialog = new TargetBoneTreeDialog()
   }
 
   public begin (): void {
@@ -48,6 +48,7 @@ export class StepLoadTargetModel extends EventTarget {
   }
 
   public show_target_bone_tree_dialog (): void {
+    this.target_bone_tree_dialog.set_target_bones(this.get_unique_target_bones())
     this.target_bone_tree_dialog.show()
   }
 
@@ -117,7 +118,7 @@ export class StepLoadTargetModel extends EventTarget {
             this.mesh2motion_engine.get_scene().add(retargetable_meshes)
             const largest_dimension: number = this.calculate_max_mesh_dimension(retargetable_meshes)
 
-            // if the largest dimension is over 20, scale the entire scene down to be 
+            // if the largest dimension is over 20, scale the entire scene down to be
             const target_height: number = 1.5 // in meters
             if (largest_dimension > 20) {
               // calculate scale factor
@@ -136,6 +137,7 @@ export class StepLoadTargetModel extends EventTarget {
 
             // Save the final retargetable meshes and dispatch event
             this.retargetable_meshes = retargetable_meshes
+            this.target_bone_tree_dialog.set_target_bones(this.get_unique_target_bones())
             this.dispatchEvent(new CustomEvent('target-model-loaded'))
           }
         }, { once: true })

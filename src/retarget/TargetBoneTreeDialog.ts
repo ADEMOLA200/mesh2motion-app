@@ -2,13 +2,9 @@ import { type Bone } from 'three'
 import { ModalDialog } from '../lib/ModalDialog.ts'
 
 export class TargetBoneTreeDialog {
-  private readonly get_target_bones: () => Map<string, Bone>
+  private target_bones: Map<string, Bone> = new Map<string, Bone>()
   private view_bone_tree_button: HTMLSpanElement | null = null
   private has_added_event_listeners: boolean = false
-
-  constructor (get_target_bones: () => Map<string, Bone>) {
-    this.get_target_bones = get_target_bones
-  }
 
   public begin (): void {
     this.view_bone_tree_button = document.getElementById('view-bone-tree-button') as HTMLSpanElement
@@ -22,8 +18,12 @@ export class TargetBoneTreeDialog {
     }
   }
 
+  public set_target_bones (target_bones: Map<string, Bone>): void {
+    this.target_bones = target_bones
+  }
+
   public show (): void {
-    const target_bones = this.get_target_bones()
+    const target_bones = this.target_bones
     const root_target_bones = TargetBoneTreeDialog.get_root_bones(target_bones)
 
     if (target_bones.size === 0) {
@@ -72,7 +72,7 @@ export class TargetBoneTreeDialog {
       ? `<ul>${child_bones.map((child_bone) => this.create_bone_tree_html(child_bone, target_bones)).join('')}</ul>`
       : ''
 
-    return `<li><span class="bone-tree-node-name">${this.escape_html(bone.name)}</span>${children_html}</li>`
+    return `<li>🦴<span class="bone-tree-node-name">${this.escape_html(bone.name)}</span>${children_html}</li>`
   }
 
   private static escape_html (value: string): string {
