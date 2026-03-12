@@ -144,6 +144,11 @@ export class StepEditSkeleton extends EventTarget {
 
     this.set_mirror_mode_enabled(mirror_mode_enabled)
 
+    // Initialize independent bone movement from checkbox state
+    if (this.ui.dom_independent_bone_movement_checkbox !== null) {
+      this.independent_bone_movement.set_enabled(this.ui.dom_independent_bone_movement_checkbox.checked)
+    }
+
     this.update_bind_button_text()
 
     // Don't add event listeners again if we are navigating back to this step
