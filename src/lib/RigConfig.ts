@@ -7,10 +7,8 @@ export interface RigConfigEntry {
   skeleton_type: SkeletonType
   // Model file path relative to the static root, e.g. 'models/model-human.glb'
   model_file: string
-  // Display name shown in the model dropdown, e.g. 'Human', 'Fox'
-  model_display_name: string
-  // Display name shown in the skeleton-type dropdown, e.g. 'Human', '4 Leg Creature'
-  skeleton_display_name: string
+  // Display name shown in both the model and skeleton dropdowns
+  rig_display_name: string
   // Animation filenames (no base path) loaded for this rig type
   animation_files: string[]
   // Sub-folder name used when referencing animation preview thumbnails
@@ -35,8 +33,7 @@ export class RigConfig {
       key: 'human',
       skeleton_type: SkeletonType.Human,
       model_file: 'models/model-human.glb',
-      model_display_name: 'Human',
-      skeleton_display_name: 'Human',
+      rig_display_name: 'Human',
       animation_files: ['human-base-animations.glb', 'human-addon-animations.glb'],
       animation_preview_folder: 'human',
       has_hand_options: true,
@@ -47,10 +44,9 @@ export class RigConfig {
       key: 'quadraped',
       skeleton_type: SkeletonType.Quadraped,
       model_file: 'models/model-fox.glb',
-      model_display_name: 'Fox',
-      skeleton_display_name: '4 Leg Creature',
-      animation_files: ['quad-creature-animations.glb'],
-      animation_preview_folder: 'four-legged',
+      rig_display_name: 'Fox',
+      animation_files: ['fox-animations.glb'],
+      animation_preview_folder: 'fox',
       has_hand_options: false,
       has_head_weight_correction: false,
       has_a_pose_correction: false
@@ -59,8 +55,7 @@ export class RigConfig {
       key: 'bird',
       skeleton_type: SkeletonType.Bird,
       model_file: 'models/model-bird.glb',
-      model_display_name: 'Bird',
-      skeleton_display_name: 'Bird',
+      rig_display_name: 'Bird',
       animation_files: ['bird-animations.glb'],
       animation_preview_folder: 'bird',
       has_hand_options: false,
@@ -71,8 +66,7 @@ export class RigConfig {
       key: 'dragon',
       skeleton_type: SkeletonType.Dragon,
       model_file: 'models/model-dragon.glb',
-      model_display_name: 'Dragon',
-      skeleton_display_name: 'Dragon',
+      rig_display_name: 'Dragon',
       animation_files: ['dragon-animations.glb'],
       animation_preview_folder: 'dragon',
       has_hand_options: false,
@@ -83,8 +77,7 @@ export class RigConfig {
       key: 'kaiju',
       skeleton_type: SkeletonType.Kaiju,
       model_file: 'models/model-kaiju.glb',
-      model_display_name: 'Kaiju',
-      skeleton_display_name: 'Kaiju',
+      rig_display_name: 'Kaiju',
       animation_files: ['kaiju-animations.glb'],
       animation_preview_folder: 'kaiju',
       has_hand_options: false,
@@ -112,7 +105,7 @@ export class RigConfig {
     for (const rig of this.all) {
       const option = document.createElement('option')
       option.value = rig.model_file
-      option.textContent = rig.model_display_name
+      option.textContent = rig.rig_display_name
       select.appendChild(option)
     }
   }
@@ -133,7 +126,7 @@ export class RigConfig {
     for (const rig of this.all) {
       const option = document.createElement('option')
       option.value = rig.key
-      option.textContent = rig.skeleton_display_name
+      option.textContent = rig.rig_display_name
       select.appendChild(option)
     }
   }
