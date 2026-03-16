@@ -7,6 +7,8 @@ export interface RigConfigEntry {
   skeleton_type: SkeletonType
   // Model file path relative to the static root, e.g. 'models/model-human.glb'
   model_file: string
+  // Rig/skeleton GLB file path relative to the static root, e.g. 'rigs/rig-human.glb'
+  rig_file: string
   // Display name shown in both the model and skeleton dropdowns
   rig_display_name: string
   // Animation filenames (no base path) loaded for this rig type
@@ -33,6 +35,7 @@ export class RigConfig {
       key: 'human',
       skeleton_type: SkeletonType.Human,
       model_file: 'models/model-human.glb',
+      rig_file: 'rigs/rig-human.glb',
       rig_display_name: 'Human',
       animation_files: ['human-base-animations.glb', 'human-addon-animations.glb'],
       animation_preview_folder: 'human',
@@ -44,6 +47,7 @@ export class RigConfig {
       key: 'fox',
       skeleton_type: SkeletonType.Fox,
       model_file: 'models/model-fox.glb',
+      rig_file: 'rigs/rig-fox.glb',
       rig_display_name: 'Fox',
       animation_files: ['fox-animations.glb'],
       animation_preview_folder: 'fox',
@@ -55,6 +59,7 @@ export class RigConfig {
       key: 'bird',
       skeleton_type: SkeletonType.Bird,
       model_file: 'models/model-bird.glb',
+      rig_file: 'rigs/rig-bird.glb',
       rig_display_name: 'Bird',
       animation_files: ['bird-animations.glb'],
       animation_preview_folder: 'bird',
@@ -66,6 +71,7 @@ export class RigConfig {
       key: 'dragon',
       skeleton_type: SkeletonType.Dragon,
       model_file: 'models/model-dragon.glb',
+      rig_file: 'rigs/rig-dragon.glb',
       rig_display_name: 'Dragon',
       animation_files: ['dragon-animations.glb'],
       animation_preview_folder: 'dragon',
@@ -77,6 +83,7 @@ export class RigConfig {
       key: 'kaiju',
       skeleton_type: SkeletonType.Kaiju,
       model_file: 'models/model-kaiju.glb',
+      rig_file: 'rigs/rig-kaiju.glb',
       rig_display_name: 'Kaiju',
       animation_files: ['kaiju-animations.glb'],
       animation_preview_folder: 'kaiju',
@@ -94,6 +101,11 @@ export class RigConfig {
   /** Look up a rig by its SkeletonType enum value. */
   static by_skeleton_type (skeleton_type: SkeletonType): RigConfigEntry | undefined {
     return this.all.find(r => r.skeleton_type === skeleton_type)
+  }
+
+  /** Get the rig GLB file path for a given skeleton type. Returns undefined for Error/None. */
+  static rig_file_for (skeleton_type: SkeletonType): string | undefined {
+    return this.by_skeleton_type(skeleton_type)?.rig_file
   }
 
   /**

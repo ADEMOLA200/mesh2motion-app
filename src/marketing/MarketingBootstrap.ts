@@ -2,6 +2,7 @@ import { Vector3 } from 'three'
 import { ProcessStep } from '../lib/enums/ProcessStep'
 import { SkeletonType } from '../lib/enums/SkeletonType'
 import { Mesh2MotionEngine } from '../Mesh2MotionEngine'
+import { RigConfig } from '../lib/RigConfig'
 
 export class MarketingBootstrap {
   private mesh2motion_engine: Mesh2MotionEngine
@@ -81,9 +82,12 @@ export class MarketingBootstrap {
 
     // we are re-creating the engine, so need to manually add the event listeners again
     this.mesh2motion_engine.load_model_step.addEventListener('modelLoaded', () => {
-      // this (this.skeleton_type) value contains the filename for the skeleton rig
+      // resolve the rig file path from the central config
+      const rig_file = RigConfig.rig_file_for(this.skeleton_type)
       this.mesh2motion_engine.process_step_changed(ProcessStep.LoadSkeleton)
-      this.mesh2motion_engine.load_skeleton_step.load_skeleton_file('../' + this.skeleton_type)
+      if (rig_file !== undefined) {
+        this.mesh2motion_engine.load_skeleton_step.load_skeleton_file('../' + rig_file)
+      }
       this.mesh2motion_engine.load_skeleton_step.set_skeleton_type(this.skeleton_type)
     })
 

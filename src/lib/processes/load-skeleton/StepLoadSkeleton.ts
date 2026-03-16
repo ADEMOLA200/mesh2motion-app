@@ -32,7 +32,7 @@ export class StepLoadSkeleton extends EventTarget {
       return this.manual_set_skeleton_type
     }
 
-    return this.skeleton_file_path() // this is actually the type/filepath combo
+    return this.skeleton_file_path()
   }
 
   public set_skeleton_type (type: SkeletonType): void {
@@ -166,7 +166,10 @@ export class StepLoadSkeleton extends EventTarget {
         }
 
         // add back loading information here
-        this.load_skeleton_file(this.skeleton_file_path())
+        const rig_file = RigConfig.rig_file_for(this.skeleton_file_path())
+        if (rig_file !== undefined) {
+          this.load_skeleton_file(rig_file)
+        }
       })
     }// end if statement
 

@@ -18,7 +18,7 @@ export default class BoneWeightsByMedianDistance implements IAutoSkinSolver {
   private bone_idx_test: number = -1
   private readonly bones_master_data: BoneCalculationData[] = []
   private debugging_scene_object: Object3D = new Object3D()
-  private skeleton_type: SkeletonType = SkeletonType.BipedalSimple
+  private skeleton_type: SkeletonType = SkeletonType.Human
 
   constructor (bone_hier: Object3D, skeleton_type: SkeletonType) {
     this.set_skeleton_type(skeleton_type)
