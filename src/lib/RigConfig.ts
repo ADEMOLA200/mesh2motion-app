@@ -74,6 +74,17 @@ export class RigConfig {
       has_hand_options: false,
       has_head_weight_correction: false,
       has_a_pose_correction: false
+    } satisfies RigConfigEntry,
+    {
+      skeleton_type: SkeletonType.Spider,
+      model_file: 'models/model-spider.glb',
+      rig_file: 'rigs/rig-spider.glb',
+      rig_display_name: 'Spider',
+      animation_files: ['../animations/spider-animations.glb'],
+      animation_preview_folder: 'spider',
+      has_hand_options: false,
+      has_head_weight_correction: false,
+      has_a_pose_correction: false
     } satisfies RigConfigEntry
   ]
 
