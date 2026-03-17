@@ -2,6 +2,7 @@ import { Vector3 } from 'three'
 import { ProcessStep } from '../lib/enums/ProcessStep'
 import { SkeletonType } from '../lib/enums/SkeletonType'
 import { Mesh2MotionEngine } from '../Mesh2MotionEngine'
+import { RigConfig } from '../lib/RigConfig'
 
 export class MarketingBootstrap {
   private mesh2motion_engine: Mesh2MotionEngine
@@ -28,49 +29,34 @@ export class MarketingBootstrap {
   }
 
   public setup_model_buttons (): void {
-    // add click events for each button type
-    const human_button: HTMLElement | null = document.getElementById('load-human-model-button')
-    const fox_button: HTMLElement | null = document.getElementById('load-fox-model-button')
-    const bird_button: HTMLElement | null = document.getElementById('load-bird-model-button')
-    const dragon_button: HTMLElement | null = document.getElementById('load-dragon-model-button')
-    const kaiju_button: HTMLElement | null = document.getElementById('load-kaiju-button')
+    const model_section = document.querySelector('.model-selection-section')
+    if (model_section === null) return
 
-    human_button?.addEventListener('click', () => {
-      this.mesh2motion_engine.load_model_step.clear_loaded_model_data()
-      this.mesh2motion_engine.load_model_step.load_model_file('../models/model-human.glb', 'glb')
-      this.skeleton_type = SkeletonType.Human
-      this.change_active_skeleton(human_button)
-    })
+    model_section.innerHTML = ''
 
-    fox_button?.addEventListener('click', () => {
-      this.mesh2motion_engine.load_model_step.clear_loaded_model_data()
-      this.mesh2motion_engine.load_model_step.load_model_file('../models/model-fox.glb', 'glb')
-      this.skeleton_type = SkeletonType.Quadraped
-      this.change_active_skeleton(fox_button)
-    })
+    let default_button: HTMLButtonElement | null = null
 
-    bird_button?.addEventListener('click', () => {
-      this.mesh2motion_engine.load_model_step.clear_loaded_model_data()
-      this.mesh2motion_engine.load_model_step.load_model_file('../models/model-bird.glb', 'glb')
-      this.skeleton_type = SkeletonType.Bird
-      this.change_active_skeleton(bird_button)
-    })
+    for (const rig of RigConfig.all) {
+      const model_button = document.createElement('button')
+      model_button.id = `load-${rig.skeleton_type}-model-button`
+      model_button.textContent = rig.rig_display_name
 
-    dragon_button?.addEventListener('click', () => {
-      this.mesh2motion_engine.load_model_step.clear_loaded_model_data()
-      this.mesh2motion_engine.load_model_step.load_model_file('../models/model-dragon.glb', 'glb')
-      this.skeleton_type = SkeletonType.Dragon
-      this.change_active_skeleton(dragon_button)
-    })
+      model_button.addEventListener('click', () => {
+        this.mesh2motion_engine.load_model_step.clear_loaded_model_data()
+        this.mesh2motion_engine.load_model_step.load_model_file('../' + rig.model_file, 'glb')
+        this.skeleton_type = rig.skeleton_type
+        this.change_active_skeleton(model_button)
+      })
 
-    kaiju_button?.addEventListener('click', () => {
-      this.mesh2motion_engine.load_model_step.clear_loaded_model_data()
-      this.mesh2motion_engine.load_model_step.load_model_file('../models/model-kaiju.glb', 'glb')
-      this.skeleton_type = SkeletonType.Kaiju
-      this.change_active_skeleton(kaiju_button)
-    })
+      model_section.appendChild(model_button)
 
-    human_button?.click() // load human by default to start us out
+      if (rig.skeleton_type === SkeletonType.Human) {
+        default_button = model_button
+      }
+    }
+
+    const first_model_button = model_section.querySelector('button') as HTMLButtonElement | null
+    ;(default_button ?? first_model_button)?.click() // load default model on page start
   }
 
   public add_event_listeners (): void {
@@ -81,9 +67,12 @@ export class MarketingBootstrap {
 
     // we are re-creating the engine, so need to manually add the event listeners again
     this.mesh2motion_engine.load_model_step.addEventListener('modelLoaded', () => {
-      // this (this.skeleton_type) value contains the filename for the skeleton rig
+      // resolve the rig file path from the central config
+      const rig_file = RigConfig.rig_file_for(this.skeleton_type)
       this.mesh2motion_engine.process_step_changed(ProcessStep.LoadSkeleton)
-      this.mesh2motion_engine.load_skeleton_step.load_skeleton_file('../' + this.skeleton_type)
+      if (rig_file !== undefined) {
+        this.mesh2motion_engine.load_skeleton_step.load_skeleton_file('../' + rig_file)
+      }
       this.mesh2motion_engine.load_skeleton_step.set_skeleton_type(this.skeleton_type)
     })
 

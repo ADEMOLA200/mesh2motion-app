@@ -6,10 +6,10 @@ import { WebMRecorder } from './webm-recorder.ts'
 import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
 
-import { Utility } from '../lib/Utilities.ts'
 import { Generators } from '../lib/Generators.ts'
 import { ThemeManager } from '../lib/ThemeManager.ts'
 import { AnimationUtility } from '../lib/processes/animations-listing/AnimationUtility.ts'
+import { RigConfig } from '../lib/RigConfig.ts'
 
 class PreviewGenerator {
   private readonly renderer_: THREE.WebGLRenderer
@@ -227,9 +227,14 @@ class PreviewGenerator {
 
 const app = new PreviewGenerator()
 
+// Populate animation file dropdown from central rig config
+const animation_file_dropdown = document.getElementById('animation-file-dropdown') as HTMLSelectElement | null
+if (animation_file_dropdown !== null) {
+  RigConfig.populate_animation_file_select(animation_file_dropdown)
+}
+
 // look out for select change
 // don't start the application logic until we pick a model to use
-const animation_file_dropdown = document.getElementById('animation-file-dropdown')
 animation_file_dropdown?.addEventListener('change', (event) => {
   const selected_file = (event.target as HTMLSelectElement).value
 

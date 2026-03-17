@@ -1,6 +1,7 @@
 import { Group, Object3D, Scene, SkeletonHelper } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { SkeletonType } from '../../lib/enums/SkeletonType.ts'
+import { RigConfig } from '../../lib/RigConfig.ts'
 import type GLTFResult from '../../lib/processes/load-skeleton/interfaces/GLTFResult.ts'
 import { ModalDialog } from '../../lib/ModalDialog.ts'
 
@@ -25,6 +26,11 @@ export class StepLoadSourceSkeleton extends EventTarget {
     // Get DOM references
     this.skeleton_type_select = document.getElementById('skeleton-type-select') as HTMLSelectElement
 
+    // Populate the skeleton dropdown from the central rig config (no placeholder needed)
+    if (this.skeleton_type_select !== null) {
+      RigConfig.populate_skeleton_select(this.skeleton_type_select, false)
+    }
+
     if (!this._added_event_listeners) {
       this.add_event_listeners()
       this._added_event_listeners = true
@@ -37,8 +43,8 @@ export class StepLoadSourceSkeleton extends EventTarget {
   private load_default_skeleton (): void {
     // Set the skeleton type to human and load it automatically
     this.skeleton_type = SkeletonType.Human
-
-    this.load_skeleton_from_path(`/${SkeletonType.Human}`).catch((error) => {
+    const rig_file = RigConfig.rig_file_for(SkeletonType.Human) ?? ''
+    this.load_skeleton_from_path(`/${rig_file}`).catch((error) => {
       console.error('Failed to load default human skeleton:', error)
     })
 
@@ -64,8 +70,9 @@ export class StepLoadSourceSkeleton extends EventTarget {
     // Clear any previously loaded skeleton
     this.clear_previous_skeleton()
 
-    // Load the selected skeleton using the file path from the enum
-    this.load_skeleton_from_path(`/${this.skeleton_type}`).catch((error) => {
+    // Load the selected skeleton using the rig file path from RigConfig
+    const rig_file = RigConfig.rig_file_for(this.skeleton_type) ?? ''
+    this.load_skeleton_from_path(`/${rig_file}`).catch((error) => {
       console.error('Failed to load skeleton:', error)
     })
 
@@ -74,20 +81,7 @@ export class StepLoadSourceSkeleton extends EventTarget {
   }
 
   private get_skeleton_type_enum (selection: string): SkeletonType {
-    switch (selection) {
-      case 'human':
-        return SkeletonType.Human
-      case 'quadraped':
-        return SkeletonType.Quadraped
-      case 'bird':
-        return SkeletonType.Bird
-      case 'dragon':
-        return SkeletonType.Dragon
-      case 'kaiju':
-        return SkeletonType.Kaiju
-      default:
-        return SkeletonType.None
-    }
+    return RigConfig.by_key(selection)?.skeleton_type ?? SkeletonType.None
   }
 
   private async load_skeleton_from_path (file_path: string): Promise<void> {

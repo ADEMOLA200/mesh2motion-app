@@ -25,8 +25,9 @@ export class UI {
   dom_skeleton_drop_type: HTMLSelectElement | null = null
   dom_hand_skeleton_options: HTMLElement | null = null
   dom_hand_skeleton_selection: HTMLSelectElement | null = null
-  dom_mirror_skeleton_checkbox: HTMLElement | null = null
+  dom_mirror_skeleton_checkbox: HTMLInputElement | null = null
   dom_independent_bone_movement_checkbox: HTMLInputElement | null = null
+  dom_mesh_drag_placement_checkbox: HTMLInputElement | null = null
   dom_scale_skeleton_button: HTMLButtonElement | null = null
   dom_undo_button: HTMLButtonElement | null = null
   dom_redo_button: HTMLButtonElement | null = null
@@ -42,6 +43,7 @@ export class UI {
 
   // edit skeleton UI step controls
   dom_selected_bone_label: HTMLElement | null = null
+  dom_transform_manual_options: HTMLElement | null = null
   dom_transform_type_radio_group: HTMLElement | null = null
   dom_transform_space_radio_group: HTMLElement | null = null
 
@@ -91,8 +93,13 @@ export class UI {
   dom_animation_count: HTMLElement | null = null
   dom_animations_listing_count: HTMLElement | null = null
 
+  // retarget bone map filters
+  dom_source_bones_filter: HTMLInputElement | null = null
+  dom_target_bones_filter: HTMLInputElement | null = null
+
   dom_build_version: HTMLElement | null = null
   dom_attribution_link: HTMLAnchorElement | null = null
+  dom_learn_link: HTMLAnchorElement | null = null
 
   private constructor () {
     this.initialize_dom_elements()
@@ -136,6 +143,7 @@ export class UI {
     this.dom_hand_skeleton_selection = document.querySelector('#hand-skeleton-selection')
     this.dom_mirror_skeleton_checkbox = document.querySelector('#mirror-skeleton')
     this.dom_independent_bone_movement_checkbox = document.querySelector('#independent-bone-movement')
+    this.dom_mesh_drag_placement_checkbox = document.querySelector('#mesh-drag-placement')
     this.dom_scale_skeleton_button = document.querySelector('#scale-skeleton-button')
     this.dom_reset_skeleton_scale_button = document.querySelector('#reset-skeleton-scale-button')
 
@@ -143,6 +151,7 @@ export class UI {
     this.dom_redo_button = document.querySelector('#redo-button')
 
     this.dom_selected_bone_label = document.querySelector('#edit-selected-bone-label')
+    this.dom_transform_manual_options = document.querySelector('#transform-manual-options')
 
     this.dom_transform_type_radio_group = document.querySelector('#transform-control-type-group')
     this.dom_transform_space_radio_group = document.querySelector('#transform-space-group')
@@ -204,11 +213,16 @@ export class UI {
     this.dom_build_version = document.querySelector('#build-version')
 
     this.dom_attribution_link = document.querySelector('#attribution-link')
+    this.dom_learn_link = document.querySelector('#learn-link')
 
     // UI for exporting the animation
     this.dom_export_button_hidden_link = document.querySelector('#download-hidden-link')
     this.dom_animation_count = document.querySelector('#animation-selection-count')
     this.dom_animations_listing_count = document.querySelector('#animation-listing-count')
+
+    // retarget bone map filter controls
+    this.dom_source_bones_filter = document.querySelector('#source-bones-filter')
+    this.dom_target_bones_filter = document.querySelector('#target-bones-filter')
   }
 
   public hide_all_elements (): void {

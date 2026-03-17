@@ -29,11 +29,12 @@
         </div>
 
         <div style="display: inline-flex; align-items: center;">
-             <a href="https://support.mesh2motion.org" target="_blank"> 💗 Support</a>
+            <a href="#" id="learn-link">Learn</a>
+            <a href="#" id="attribution-link">Contributors</a>
+             <a href="https://support.mesh2motion.org" target="_blank">💗</a>
             <a href="https://github.com/scottpetrovic/mesh2motion-app" target="_blank">
                 <img src="../images/github-white-icon.png" width="24" height="24" alt="GitHub" />
             </a>
-            <a href="#" id="attribution-link">Contributors</a>            
 
             <!-- Theme Toggle -->
             <button id="theme-toggle">
@@ -61,11 +62,7 @@
     </div>
 
     <div class="model-selection-section">
-        <button id="load-human-model-button">Human</button>
-        <button id="load-fox-model-button">Fox</button>
-        <button id="load-bird-model-button">Bird</button>
-        <button id="load-dragon-model-button">Dragon</button>
-        <button id="load-kaiju-button">Kaiju</button>
+        <!-- populated dynamically from RigConfig -->
     </div>
 
 
@@ -93,11 +90,7 @@
                         <div style="display: flex; flex-direction: column; gap: 1rem;">
                             <span>Skeleton template:</span>
                             <select id="skeleton-selection">
-                                <option value="select-skeleton">Select a skeleton</option>
-                                <option value="human">Human</option>
-                                <option value="quadraped">4 Leg Creature</option>
-                                <option value="bird">Bird</option>
-                                <option value="dragon">Dragon</option>
+                                <!-- populated dynamically from RigConfig -->
                             </select>
                         </div>
 

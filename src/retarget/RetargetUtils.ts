@@ -1,6 +1,5 @@
 import { type Scene, Group, Skeleton, type SkinnedMesh, type Bone, type Object3D } from 'three'
 import { ModalDialog } from '../lib/ModalDialog.ts'
-import { SkeletonType } from '../lib/enums/SkeletonType.ts'
 
 export interface TrackNameParts {
   bone_name: string
@@ -112,24 +111,6 @@ export class RetargetUtils {
     })
 
     return all_bones_match
-  }
-
-  /**
-   * Get the animation file path based on skeleton type
-   */
-  static get_animation_file_path (skeleton_type: SkeletonType): string | null {
-    switch (skeleton_type) {
-      case SkeletonType.Human:
-        return '/animations/human-base-animations.glb'
-      case SkeletonType.Quadraped:
-        return '/animations/quad-creature-animations.glb'
-      case SkeletonType.Bird:
-        return '/animations/bird-animations.glb'
-      case SkeletonType.Dragon:
-        return '/animations/dragon-animations.glb'
-      default:
-        return null
-    }
   }
 
   /**

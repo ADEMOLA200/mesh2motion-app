@@ -2,6 +2,7 @@ import { UI } from '../../UI.ts'
 import { Object3D, type Scene, type Object3DEventMap } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { SkeletonType, type HandSkeletonType } from '../../enums/SkeletonType.js'
+import { RigConfig } from '../../RigConfig.ts'
 import type GLTFResult from './interfaces/GLTFResult.ts'
 import { add_origin_markers, remove_origin_markers } from './OriginMarkerManager'
 import { add_preview_skeleton, remove_preview_skeleton } from './PreviewSkeletonManager.ts'
@@ -34,7 +35,7 @@ export class StepLoadSkeleton extends EventTarget {
       return this.manual_set_skeleton_type
     }
 
-    return this.skeleton_file_path() // this is actually the type/filepath combo
+    return this.skeleton_file_path()
   }
 
   public set_skeleton_type (type: SkeletonType): void {
@@ -111,25 +112,14 @@ export class StepLoadSkeleton extends EventTarget {
     const skeleton_selection = this.ui.dom_skeleton_drop_type.options
     const skeleton_file: string = skeleton_selection[skeleton_selection.selectedIndex].value
 
-    // set the skeleton type. This will be used for the animations listing later
-    // so it knows what animations to load
-    switch (skeleton_file) {
-      case 'quadraped':
-        return SkeletonType.Quadraped
-      case 'human':
-        return SkeletonType.Human
-      case 'bird':
-        return SkeletonType.Bird
-      case 'select-skeleton':
-        return SkeletonType.None
-      case 'dragon':
-        return SkeletonType.Dragon
-      case 'kaiju':
-        return SkeletonType.Kaiju
-      default:
-        console.error('unknown skeleton type selected: ', skeleton_file)
-        return SkeletonType.Error
+    if (skeleton_file === 'select-skeleton') return SkeletonType.None
+
+    const config = RigConfig.by_key(skeleton_file)
+    if (config === undefined) {
+      console.error('unknown skeleton type selected: ', skeleton_file)
+      return SkeletonType.Error
     }
+    return config.skeleton_type
   }
 
   private hand_skeleton_type (): HandSkeletonType {
@@ -138,6 +128,11 @@ export class StepLoadSkeleton extends EventTarget {
   }
 
   private add_event_listeners (): void {
+    // Populate the skeleton template dropdown from the central rig config
+    if (this.ui.dom_skeleton_drop_type !== null) {
+      RigConfig.populate_skeleton_select(this.ui.dom_skeleton_drop_type)
+    }
+
     // Add event listener for skeleton type changes to show/hide hand options
     if (this.ui.dom_skeleton_drop_type !== null) {
       this.ui.dom_skeleton_drop_type.addEventListener('change', () => {
@@ -177,7 +172,10 @@ export class StepLoadSkeleton extends EventTarget {
         }
 
         // add back loading information here
-        this.load_skeleton_file(this.skeleton_file_path())
+        const rig_file = RigConfig.rig_file_for(this.skeleton_file_path())
+        if (rig_file !== undefined) {
+          this.load_skeleton_file(rig_file)
+        }
       })
     }// end if statement
 
@@ -311,7 +309,8 @@ export class StepLoadSkeleton extends EventTarget {
       return
     }
 
-    if (this.skeleton_file_path() === SkeletonType.Human) {
+    const config = RigConfig.by_skeleton_type(this.skeleton_file_path())
+    if (config?.has_hand_options === true) {
       this.ui.dom_hand_skeleton_options.style.display = 'flex'
     } else {
       this.ui.dom_hand_skeleton_options.style.display = 'none'

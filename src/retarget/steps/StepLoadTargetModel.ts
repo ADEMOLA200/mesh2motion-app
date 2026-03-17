@@ -1,13 +1,15 @@
-import { type Bone, Box3, type Group, type Object3DEventMap, type Scene, type SkinnedMesh, Vector3 } from 'three'
-import { type Mesh2MotionEngine } from '../Mesh2MotionEngine.ts'
+import { type Bone, Box3, type Scene, type SkinnedMesh, Vector3 } from 'three'
+import { type Mesh2MotionEngine } from '../../Mesh2MotionEngine.ts'
 import { ModalDialog } from '../../lib/ModalDialog.ts'
 import { RetargetUtils } from '../RetargetUtils.ts'
+import { TargetBoneTreeDialog } from '../TargetBoneTreeDialog.ts'
 
 /**
  * Handles loading the target model (user-uploaded model) for retargeting
  */
 export class StepLoadTargetModel extends EventTarget {
   private readonly mesh2motion_engine: Mesh2MotionEngine
+  private readonly target_bone_tree_dialog: TargetBoneTreeDialog
   private file_input: HTMLInputElement | null = null
   private load_model_button: HTMLLabelElement | null = null
 
@@ -16,14 +18,41 @@ export class StepLoadTargetModel extends EventTarget {
   constructor (mesh2motion_engine: Mesh2MotionEngine) {
     super()
     this.mesh2motion_engine = mesh2motion_engine
+    this.target_bone_tree_dialog = new TargetBoneTreeDialog()
   }
 
   public begin (): void {
     this.add_event_listeners()
+    this.target_bone_tree_dialog.begin()
   }
 
   public get_retargetable_meshes (): Scene | null {
     return this.retargetable_meshes
+  }
+
+  public get_first_skinned_mesh_bones (): Map<string, Bone> {
+    const bones: Map<string, Bone> = new Map<string, Bone>()
+
+    if (this.retargetable_meshes === null) {
+      return bones
+    }
+
+    let first_skinned_mesh: SkinnedMesh | null = null
+    this.retargetable_meshes.traverse((child) => {
+      if (first_skinned_mesh === null && child.type === 'SkinnedMesh') {
+        first_skinned_mesh = child as SkinnedMesh
+      }
+    })
+
+    if (first_skinned_mesh === null) {
+      return bones
+    }
+
+    first_skinned_mesh.skeleton.bones.forEach((bone) => {
+      bones.set(bone.uuid, bone)
+    })
+
+    return bones
   }
 
   private add_event_listeners (): void {
@@ -92,14 +121,14 @@ export class StepLoadTargetModel extends EventTarget {
             this.mesh2motion_engine.get_scene().add(retargetable_meshes)
             const largest_dimension: number = this.calculate_max_mesh_dimension(retargetable_meshes)
 
-            // if the largest dimension is over 20, scale the entire scene down to be 
+            // if the largest dimension is over 20, scale the entire scene down to be
             const target_height: number = 1.5 // in meters
             if (largest_dimension > 20) {
               // calculate scale factor
               const scale_factor = target_height / largest_dimension
               console.log('scaling model down because of ', largest_dimension)
               new ModalDialog('Large Rig Warning',
-                `The model you imported is large (${largest_dimension.toFixed(1)} meters). Mesh2Motion expects 1 unit = 1 meter. Your model will be scaled down. This will affect the retargeted animation results. This warning will go away whenever the developer can figure out how to correctly handle issues with.`).show()
+                `The model you imported is large (${largest_dimension.toFixed(1)} meters). Mesh2Motion expects 1 unit = 1 meter. Your model will be scaled down. Mixamo rigs will work as long as they only have one skeleton in the model file.`).show()
               retargetable_meshes.scale.set(scale_factor, scale_factor, scale_factor) // common case with 3d creation tools that use 1 cm = 1 unit
             }
 
@@ -111,6 +140,8 @@ export class StepLoadTargetModel extends EventTarget {
 
             // Save the final retargetable meshes and dispatch event
             this.retargetable_meshes = retargetable_meshes
+            this.target_bone_tree_dialog.set_target_bones(this.get_first_skinned_mesh_bones())
+            this.target_bone_tree_dialog.set_target_skinned_mesh_count(this.get_target_skinned_mesh_count())
             this.dispatchEvent(new CustomEvent('target-model-loaded'))
           }
         }, { once: true })
@@ -137,6 +168,18 @@ export class StepLoadTargetModel extends EventTarget {
         this.mesh2motion_engine.regenerate_skeleton_helper(skinned_mesh.skeleton, 'Retarget Skeleton Helper')
       }
     })
+  }
+
+  private get_target_skinned_mesh_count (): number {
+    let skinned_mesh_count = 0
+
+    this.retargetable_meshes?.traverse((child) => {
+      if (child.type === 'SkinnedMesh') {
+        skinned_mesh_count++
+      }
+    })
+
+    return skinned_mesh_count
   }
 
   // gets max dimension of the model for scaling

@@ -1,13 +1,13 @@
 // Supported skeleton types
-// the file names for the skeleton types are associated with the const
 export enum SkeletonType {
-  Quadraped = 'rigs/rig-fox.glb',
-  Human = 'rigs/rig-human.glb',
-  Bird = 'rigs/rig-bird.glb',
-  Dragon = 'rigs/rig-dragon.glb',
-  Kaiju = 'rigs/rig-kaiju.glb',
-  Error = 'ERROR',
-  None = 'NONE'
+  Fox = 'fox',
+  Human = 'human',
+  Bird = 'bird',
+  Dragon = 'dragon',
+  Kaiju = 'kaiju',
+  Spider = 'spider',
+  Error = 'error',
+  None = 'none'
 }
 
 // Hand skeleton variation types for human skeleton

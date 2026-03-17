@@ -19,6 +19,7 @@ import {
   type Camera
 } from 'three'
 import { SkeletonType } from '../../enums/SkeletonType.ts'
+import { RigConfig } from '../../RigConfig.ts'
 
 /*
  * StepEditSkeleton
@@ -38,6 +39,7 @@ export class StepEditSkeleton extends EventTarget {
   // Skeleton created from the armature that Three.js uses
   private threejs_skeleton: Skeleton = new Skeleton()
   private mirror_mode_enabled: boolean = true
+  private mesh_drag_placement_enabled: boolean = true
   private skinning_algorithm: string | null = null
   private show_debug: boolean = true
 
@@ -102,7 +104,8 @@ export class StepEditSkeleton extends EventTarget {
     // keep track of skeleton type to show/hide certain UI elements
     // only human skeletons have the head weight correction option
     if (this.ui.dom_use_head_weight_correction_container != null) {
-      if (skeleton_type === SkeletonType.Human) {
+      const config = RigConfig.by_skeleton_type(skeleton_type)
+      if (config?.has_head_weight_correction === true) {
         this.ui.dom_use_head_weight_correction_container.style.display = 'block'
       } else {
         this.ui.dom_use_head_weight_correction_container.style.display = 'none'
@@ -134,6 +137,23 @@ export class StepEditSkeleton extends EventTarget {
       this.show_debug = this.ui.dom_enable_skin_debugging.checked
     } else {
       this.show_debug = false
+    }
+
+    let mirror_mode_enabled: boolean = this.mirror_mode_enabled
+
+    if (this.ui.dom_mirror_skeleton_checkbox !== null) {
+      mirror_mode_enabled = this.ui.dom_mirror_skeleton_checkbox.checked
+    }
+
+    this.set_mirror_mode_enabled(mirror_mode_enabled)
+
+    // Initialize independent bone movement from checkbox state
+    if (this.ui.dom_independent_bone_movement_checkbox !== null) {
+      this.independent_bone_movement.set_enabled(this.ui.dom_independent_bone_movement_checkbox.checked)
+    }
+
+    if (this.ui.dom_mesh_drag_placement_checkbox !== null) {
+      this.set_mesh_drag_placement_enabled(this.ui.dom_mesh_drag_placement_checkbox.checked)
     }
 
     this.update_bind_button_text()
@@ -192,7 +212,7 @@ export class StepEditSkeleton extends EventTarget {
    * @description This is the bone that is currently selected in the UI while editing
    * the skeleton.
    */
-  public set_currently_selected_bone (bone: Bone): void {
+  public set_currently_selected_bone (bone: Bone | null): void {
     this.currently_selected_bone = bone
   }
 
@@ -202,10 +222,50 @@ export class StepEditSkeleton extends EventTarget {
 
   public set_mirror_mode_enabled (value: boolean): void {
     this.mirror_mode_enabled = value
+    this.dispatchEvent(new CustomEvent('mirrorModeChanged', {
+      detail: { enabled: value }
+    }))
   }
 
   public is_mirror_mode_enabled (): boolean {
     return this.mirror_mode_enabled
+  }
+
+  public set_mesh_drag_placement_enabled (value: boolean): void {
+    this.mesh_drag_placement_enabled = value
+    this.update_manual_transform_options_visibility()
+    this.dispatchEvent(new CustomEvent('boneEditModeChanged', {
+      detail: { enabled: value }
+    }))
+  }
+
+  public is_mesh_drag_placement_enabled (): boolean {
+    return this.mesh_drag_placement_enabled
+  }
+
+  private update_manual_transform_options_visibility (): void {
+    if (this.ui.dom_transform_manual_options === null) {
+      return
+    }
+
+    this.ui.dom_transform_manual_options.style.display = this.mesh_drag_placement_enabled ? 'none' : 'flex'
+  }
+
+  public is_bone_selectable (bone: Bone | null): boolean {
+    if (bone === null) {
+      return false
+    }
+
+    if (!this.mirror_mode_enabled) {
+      return true
+    }
+
+    return !this.is_right_side_bone(bone)
+  }
+
+  private is_right_side_bone (bone: Bone): boolean {
+    const normalized_bone_name = bone.name.toLowerCase()
+    return /(^right_|^r_|_right$|_r$|\.right$|\.r$|-right$|-r$)/.test(normalized_bone_name)
   }
 
   /**
@@ -269,19 +329,49 @@ export class StepEditSkeleton extends EventTarget {
 
     if (this.ui.dom_mirror_skeleton_checkbox !== null) {
       this.ui.dom_mirror_skeleton_checkbox.addEventListener('change', (event) => {
+        const target = event.target as HTMLInputElement | null
+
+        if (target === null) {
+          return
+        }
+
         // mirror skeleton movements along the X axis
-        this.set_mirror_mode_enabled(event.target.checked)
+        this.set_mirror_mode_enabled(target.checked)
       })
     }
 
     if (this.ui.dom_independent_bone_movement_checkbox !== null) {
       this.ui.dom_independent_bone_movement_checkbox.addEventListener('change', (event) => {
-        this.independent_bone_movement.set_enabled(event.target.checked)
+        const target = event.target as HTMLInputElement | null
+
+        if (target === null) {
+          return
+        }
+
+        this.independent_bone_movement.set_enabled(target.checked)
+      })
+    }
+
+    if (this.ui.dom_mesh_drag_placement_checkbox !== null) {
+      this.ui.dom_mesh_drag_placement_checkbox.addEventListener('change', (event) => {
+        const target = event.target as HTMLInputElement | null
+
+        if (target === null) {
+          return
+        }
+
+        this.set_mesh_drag_placement_enabled(target.checked)
       })
     }
 
     this.ui.dom_enable_skin_debugging?.addEventListener('change', (event) => {
-      this.show_debug = event.target.checked
+      const target = event.target as HTMLInputElement | null
+
+      if (target === null) {
+        return
+      }
+
+      this.show_debug = target.checked
       this.update_bind_button_text()
     })
 
@@ -474,6 +564,11 @@ export class StepEditSkeleton extends EventTarget {
       return
     }
 
+    if (!this.is_bone_selectable(closest_bone)) {
+      this.update_bone_hover_point_position(null)
+      return
+    }
+
     this.update_bone_hover_point_position(closest_bone)
   }
 
@@ -501,10 +596,11 @@ export class StepEditSkeleton extends EventTarget {
 
       const material = new PointsMaterial({
         color: 0x69a1d0, // Blue color
-        size: 20, // Size of the point in pixels
+        size: 30, // Size of the point in pixels
         sizeAttenuation: false, // Disable size attenuation
         depthTest: false, // always render on top
         map: this.joint_texture, // Use a circular texture
+        opacity: 0.7,
         transparent: true // Enable transparency for the circular texture
       })
 

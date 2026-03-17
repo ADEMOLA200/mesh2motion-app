@@ -1,7 +1,8 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { type AnimationClip } from 'three'
 import { AnimationUtility } from './AnimationUtility.ts'
-import { SkeletonType } from '../../enums/SkeletonType.ts'
+import { type SkeletonType } from '../../enums/SkeletonType.ts'
+import { RigConfig } from '../../RigConfig.ts'
 import { type AnimationClipMetadata, type TransformedAnimationClipPair } from './interfaces/TransformedAnimationClipPair.ts'
 import { LoadError, NoAnimationsError } from './AnimationImportErrors.ts'
 
@@ -48,7 +49,8 @@ export class AnimationLoader extends EventTarget {
     skeleton_type: SkeletonType,
     skeleton_scale: number = 1.0
   ): Promise<TransformedAnimationClipPair[]> {
-    const file_paths = this.get_animation_file_paths(skeleton_type)
+    const configured_animation_files = RigConfig.get_animation_file_paths(skeleton_type)
+    const file_paths = configured_animation_files.map(f => `${this.animations_file_path}${f}`)
 
     if (file_paths.length === 0) {
       throw new Error(`No animation files found for skeleton type: ${skeleton_type}`)
@@ -215,32 +217,6 @@ export class AnimationLoader extends EventTarget {
         }
       )
     })
-  }
-
-  /**
-   * Gets the file paths for animations based on skeleton type
-   */
-  private get_animation_file_paths (skeleton_type: SkeletonType): string[] {
-    const base_path = this.animations_file_path
-
-    switch (skeleton_type) {
-      case SkeletonType.Human:
-        return [
-          `${base_path}human-base-animations.glb`,
-          `${base_path}human-addon-animations.glb`
-        ]
-      case SkeletonType.Quadraped:
-        return [`${base_path}quad-creature-animations.glb`]
-      case SkeletonType.Bird:
-        return [`${base_path}bird-animations.glb`]
-      case SkeletonType.Dragon:
-        return [`${base_path}dragon-animations.glb`]
-      case SkeletonType.Kaiju:
-        return [`${base_path}kaiju-animations.glb`]
-      default:
-        console.error('Unknown skeleton type for loading animations:', skeleton_type)
-        return []
-    }
   }
 
   /**
