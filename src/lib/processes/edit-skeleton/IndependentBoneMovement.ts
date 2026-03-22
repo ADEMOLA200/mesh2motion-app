@@ -46,22 +46,22 @@ export class IndependentBoneMovement {
   }
 
   /**
-   * Snapshot the world positions of the direct bone children at drag start.
-   * Clears any previously stored positions first.
+   * Snapshot the world-space position and rotation of each direct bone child
+   * at drag start.  Clears any previously stored transforms first.
    * When mirror mode is also active, pass the mirror bone as the second argument
    * so its children are tracked in the same pass.
    */
   public record_drag_start (bone: Bone, mirror_bone?: Bone): void {
     this._children_initial_world_positions.clear()
     this._children_initial_world_rotations.clear()
-    this._append_children_world_positions(bone)
+    this._snapshot_direct_children(bone)
     if (mirror_bone !== undefined) {
-      this._append_children_world_positions(mirror_bone)
+      this._snapshot_direct_children(mirror_bone)
     }
   }
 
   /**
-   * Re-pin the direct children of a bone to their snapshotted world positions.
+   * Re-pin the direct children of a bone to their snapshotted world transforms.
    * Call this every frame while the bone is being dragged.
    * When mirror mode is also active, pass the mirror bone as the second argument
    * so its children are pinned in the same call.
@@ -99,7 +99,7 @@ export class IndependentBoneMovement {
     const snapshot = new Map<string, { pos: Vector3, rot: Quaternion }>()
     this._snapshot_bone_and_children(bone, snapshot)
 
-    // ── Step 1: Update the PARENT bone's rotation ────────────────────────────
+    // - Step 1: Update the PARENT bone's rotation --------------
     // The parent-to-child direction changed because the child was translated.
     const parent_bone = (bone.parent !== null && this._is_bone(bone.parent))
       ? bone.parent
@@ -118,7 +118,7 @@ export class IndependentBoneMovement {
       this._repin_children_from_snapshot(parent_bone, snapshot)
     }
 
-    // ── Step 2: Update the MOVED bone's rotation ─────────────────────────────
+    // - Step 2: Update the MOVED bone's rotation ---------------
     // The bone-to-child direction changed because children were pinned in place.
     this._finalize_bone_rotation_from_rest_pose(bone)
 
@@ -164,7 +164,7 @@ export class IndependentBoneMovement {
     })
   }
 
-  private _append_children_world_positions (bone: Bone): void {
+  private _snapshot_direct_children (bone: Bone): void {
     bone.children.forEach((child) => {
       if (!this._is_bone(child)) { return }
 
