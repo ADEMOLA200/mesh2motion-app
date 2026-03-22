@@ -269,13 +269,9 @@ export class StepLoadSkeleton extends EventTarget {
   }
 
   // this does not mutate armature that goes in
-  // bakes scale into bone positions and bakes root position offset into the first bone
-  // this ensures the Z offset and scale carry through the weight skinning pipeline
-  // which only uses children[0] and ignores the root armature's transform
+  // bakes scale into bone positions and resets scale to 1
   private bake_scale_for_armature (armature: Object3D): Object3D {
     const scale = armature.scale.x // assumes uniform scale
-    const position_offset = armature.position.clone()
-    const has_offset = position_offset.lengthSq() !== 0
 
     const cloned_armature: Object3D = armature.clone()
 
@@ -287,12 +283,6 @@ export class StepLoadSkeleton extends EventTarget {
         }
       })
       cloned_armature.scale.set(1, 1, 1)
-    }
-
-    // bake root position offset into first bone so it carries through the skinning pipeline
-    if (has_offset && cloned_armature.children.length > 0) {
-      cloned_armature.children[0].position.add(position_offset)
-      cloned_armature.position.set(0, 0, 0)
     }
 
     cloned_armature.updateMatrixWorld(true)
