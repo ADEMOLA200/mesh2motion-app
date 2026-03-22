@@ -21,9 +21,6 @@ export class StepLoadSkeleton extends EventTarget {
   // this is useful since position keyframes will need to be scaled
   // to prevent large offsets
   private skeleton_scale_percentage: number = 1.0
-  public skeleton_offset_x: number = 0.0
-  public skeleton_offset_y: number = 0.0
-  public skeleton_offset_z: number = 0.0
 
   // this was invented since this value is stored on a DOM element
   // this helps the marketing page set the type and doesn't rely on a DOM value
@@ -76,8 +73,7 @@ export class StepLoadSkeleton extends EventTarget {
     // so just use that and load the preview right when we enter this step
     if (!this.has_select_skeleton_ui_option()) {
       add_preview_skeleton(this._main_scene, this.skeleton_file_path(),
-        this.hand_skeleton_type(), this.skeleton_scale_percentage,
-        this.skeleton_offset_x, this.skeleton_offset_y, this.skeleton_offset_z).catch((err) => {
+        this.hand_skeleton_type(), this.skeleton_scale_percentage).catch((err) => {
         console.error('error loading preview skeleton: ', err)
       })
 
@@ -155,7 +151,7 @@ export class StepLoadSkeleton extends EventTarget {
         // load the preview skeleton
         // need to get the file name for the correct skeleton
         // we pass the skeleton scale in the case where we set a skeleton, change scale, then change the skeleton
-        add_preview_skeleton(this._main_scene, this.skeleton_file_path(), this.hand_skeleton_type(), this.skeleton_scale(), this.skeleton_offset_x, this.skeleton_offset_y, this.skeleton_offset_z).then(() => {
+        add_preview_skeleton(this._main_scene, this.skeleton_file_path(), this.hand_skeleton_type(), this.skeleton_scale()).then(() => {
           // enable the ability to progress to next step
           this.allow_proceeding_to_next_step(true)
         }).catch((err) => {
@@ -183,7 +179,7 @@ export class StepLoadSkeleton extends EventTarget {
     this.ui.dom_hand_skeleton_selection?.addEventListener('change', () => {
       // rebuild the preview skeleton with the new hand skeleton type
       // make sure we keep existing scale if we made a change to that
-      add_preview_skeleton(this._main_scene, this.skeleton_file_path(), this.hand_skeleton_type(), this.skeleton_scale(), this.skeleton_offset_x, this.skeleton_offset_y, this.skeleton_offset_z).catch((err) => {
+      add_preview_skeleton(this._main_scene, this.skeleton_file_path(), this.hand_skeleton_type(), this.skeleton_scale()).catch((err) => {
         console.error('error loading preview skeleton: ', err)
       })
     })
@@ -209,7 +205,7 @@ export class StepLoadSkeleton extends EventTarget {
     if (this.ui.dom_scale_skeleton_percentage_display !== null) {
       this.ui.dom_scale_skeleton_percentage_display.textContent = display_value
     }
-    add_preview_skeleton(this._main_scene, this.skeleton_file_path(), this.hand_skeleton_type(), this.skeleton_scale_percentage, this.skeleton_offset_x, this.skeleton_offset_y, this.skeleton_offset_z)
+    add_preview_skeleton(this._main_scene, this.skeleton_file_path(), this.hand_skeleton_type(), this.skeleton_scale_percentage)
       .catch((err) => {
         console.error('error loading preview skeleton: ', err)
       })
@@ -247,8 +243,7 @@ export class StepLoadSkeleton extends EventTarget {
         helper.modify_hand_skeleton(this.loaded_armature, this.hand_skeleton_type())
       }
 
-      // reset the armature position and apply offset from the skeleton gizmo
-      this.loaded_armature.position.set(this.skeleton_offset_x, this.skeleton_offset_y, this.skeleton_offset_z)
+      this.loaded_armature.position.set(0, 0, 0)
       this.loaded_armature.updateWorldMatrix(true, true)
 
       // scale the armature to what we picked using the scale slider/preview
