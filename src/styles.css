@@ -57,6 +57,10 @@ body.light-theme img[src$=".png"] {
   filter: invert(0.7);
 }
 
+ul {
+    padding: 0.5rem;
+}
+
 nav {
     width: 100vw;
     height: var(--navigation-height);

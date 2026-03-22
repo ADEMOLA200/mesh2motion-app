@@ -173,8 +173,11 @@ export class EventListeners {
 
     // Auto-align model to floor
     this.bootstrap.ui.dom_auto_align_model_button?.addEventListener('click', () => {
+      // move the mesh geometry data to the floor
       const mesh_data = this.bootstrap.load_model_step.model_meshes()
       ModelCleanupUtility.move_model_to_floor(mesh_data)
+
+      // move the transform widget to reset it to the new position on the canvas
       const py = mesh_data.position.y
       if (py !== 0) {
         ModelCleanupUtility.translate_model_vertices(mesh_data, 0, py, 0)

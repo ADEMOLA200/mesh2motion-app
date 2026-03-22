@@ -28,11 +28,11 @@ export class Generators {
       <li>Quaternius: Base human model, rig, and animations. <a href="http://quaternius.com/" target="_blank" rel="noopener noreferrer">quaternius.com</a></li>
       <li>Sketchpunklab: Provided algorithm to help retarget human rigs for animations. <a target="_blank" href="https://x.com/SketchpunkLabs">See social media account</a></li>
       <li>Lino Emmenegger (oni-swr) - Adding custom animation importer.</li>
+      <li>Marino - Added improved move functionality when importing model.</li>
       <li>Three.js Contributors: For the amazing Three.js library. <a href="https://threejs.org/" target="_blank" rel="noopener noreferrer">threejs.org</a></li>
     </ul>
 
-      <hr/>
-      <p>Check out the <a href="https://github.com/Mesh2Motion" target="_blank">project's guide</a> for instructions on contributing.
+      <p style="margin-top: 1rem;">Check out the <a href="https://github.com/Mesh2Motion" target="_blank">project's guide</a> for instructions on contributing.
       </p>
       </span>
     `
