@@ -111,6 +111,14 @@ export class MeshDragBonePlacement {
       return false
     }
 
+    const selected_bone = this.edit_skeleton_step.get_currently_selected_bone()
+    if (selected_bone !== null && this.edit_skeleton_step.independent_bone_movement.is_enabled()) {
+      const mirror_bone = this.edit_skeleton_step.is_mirror_mode_enabled()
+        ? this.edit_skeleton_step.find_mirror_bone(selected_bone)
+        : undefined
+      this.edit_skeleton_step.independent_bone_movement.finalize_drop(selected_bone, mirror_bone)
+    }
+
     this.is_dragging_mode_active = false
     if (this.orbit_controls !== undefined) {
       this.orbit_controls.enabled = true

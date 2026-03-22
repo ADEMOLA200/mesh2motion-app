@@ -123,6 +123,19 @@ export class EventListeners {
         }
       }
 
+      if (!event.value &&
+        this.bootstrap.process_step === ProcessStep.EditSkeleton &&
+        this.bootstrap.transform_controls.getMode() === 'translate' &&
+        this.bootstrap.edit_skeleton_step.independent_bone_movement.is_enabled()) {
+        const selected_bone = this.bootstrap.transform_controls.object
+        if (selected_bone !== undefined && selected_bone !== null) {
+          const mirror_bone = this.bootstrap.edit_skeleton_step.is_mirror_mode_enabled()
+            ? this.bootstrap.edit_skeleton_step.find_mirror_bone(selected_bone as Bone)
+            : undefined
+          this.bootstrap.edit_skeleton_step.independent_bone_movement.finalize_drop(selected_bone as Bone, mirror_bone)
+        }
+      }
+
       // if we stopped dragging, that means a mouse up.
       // if we are editing skeleton and viewing weight painted mesh, refresh the weight painting
       if (this.bootstrap.process_step === ProcessStep.EditSkeleton &&

@@ -68,7 +68,7 @@ export class UI {
   dom_export_button: HTMLButtonElement | null = null
 
   dom_mirror_animations_checkbox: HTMLInputElement | null = null
-  dom_reset_a_pose_button: HTMLButtonElement | null = null
+  dom_reset_arm_extension_button: HTMLButtonElement | null = null
 
   // loading progress UI controls for animations
   dom_animation_progress_loader_container: HTMLElement | null = null
@@ -88,7 +88,7 @@ export class UI {
   dom_import_animations_input: HTMLInputElement | null = null
   dom_extend_arm_range_input: HTMLInputElement | null = null
   dom_extend_arm_numeric_input: HTMLInputElement | null = null
-  dom_a_pose_correction_options: HTMLElement | null = null
+  dom_arm_extension_options: HTMLElement | null = null
   dom_export_button_hidden_link: HTMLElement | null = null
   dom_animation_count: HTMLElement | null = null
   dom_animations_listing_count: HTMLElement | null = null
@@ -190,7 +190,7 @@ export class UI {
     this.dom_import_animations_button = document.querySelector('#import-animations-button')
     this.dom_import_animations_input = document.querySelector('#import-animations-input')
     this.dom_mirror_animations_checkbox = document.querySelector('#mirror-animations-checkbox')
-    this.dom_reset_a_pose_button = document.querySelector('#reset-a-pose-button')
+    this.dom_reset_arm_extension_button = document.querySelector('#reset-arm-extension-button')
 
     // loading progress UI controls for animations
     this.dom_animation_progress_loader_container = document.querySelector('#animation-progress-loader-container')
@@ -208,7 +208,7 @@ export class UI {
 
     this.dom_extend_arm_range_input = document.querySelector('#extend-arm-range-input')
     this.dom_extend_arm_numeric_input = document.querySelector('#extend-arm-numeric-input')
-    this.dom_a_pose_correction_options = document.querySelector('#a-pose-correction-options')
+    this.dom_arm_extension_options = document.querySelector('#arm-extension-options')
 
     this.dom_build_version = document.querySelector('#build-version')
 

@@ -273,12 +273,12 @@ export class Mesh2MotionEngine {
   }
 
   public update_a_pose_options_visibility (): void {
-    if (this.ui.dom_a_pose_correction_options != null) {
+    if (this.ui.dom_arm_extension_options != null) {
       const config = RigConfig.by_skeleton_type(this.load_skeleton_step.skeleton_type())
-      if (config?.has_a_pose_correction === true) {
-        this.ui.dom_a_pose_correction_options.style.display = 'block'
+      if (config?.has_arm_extension === true) {
+        this.ui.dom_arm_extension_options.style.display = 'block'
       } else {
-        this.ui.dom_a_pose_correction_options.style.display = 'none'
+        this.ui.dom_arm_extension_options.style.display = 'none'
       }
     }
   }

@@ -9,7 +9,7 @@ export interface RigConfigEntry {
   animation_preview_folder: string // Sub-folder name used when referencing animation preview thumbnails
   has_hand_options: boolean // Only Human has per-finger hand skeleton options
   has_head_weight_correction: boolean // Only Human shows the head weight correction panel
-  has_a_pose_correction: boolean // Only Human shows the A-pose arm-extension correction slider
+  has_arm_extension: boolean // Only Human shows the arm expand/contract slider
 }
 
 /**
@@ -29,7 +29,7 @@ export class RigConfig {
       animation_preview_folder: 'human',
       has_hand_options: true,
       has_head_weight_correction: true,
-      has_a_pose_correction: true
+      has_arm_extension: true
     } satisfies RigConfigEntry,
     {
       skeleton_type: SkeletonType.Fox,
@@ -40,7 +40,7 @@ export class RigConfig {
       animation_preview_folder: 'fox',
       has_hand_options: false,
       has_head_weight_correction: false,
-      has_a_pose_correction: false
+      has_arm_extension: false
     } satisfies RigConfigEntry,
     {
       skeleton_type: SkeletonType.Bird,
@@ -51,7 +51,7 @@ export class RigConfig {
       animation_preview_folder: 'bird',
       has_hand_options: false,
       has_head_weight_correction: false,
-      has_a_pose_correction: false
+      has_arm_extension: false
     } satisfies RigConfigEntry,
     {
       skeleton_type: SkeletonType.Dragon,
@@ -62,7 +62,7 @@ export class RigConfig {
       animation_preview_folder: 'dragon',
       has_hand_options: false,
       has_head_weight_correction: false,
-      has_a_pose_correction: false
+      has_arm_extension: false
     } satisfies RigConfigEntry,
     {
       skeleton_type: SkeletonType.Kaiju,
@@ -73,7 +73,7 @@ export class RigConfig {
       animation_preview_folder: 'kaiju',
       has_hand_options: false,
       has_head_weight_correction: false,
-      has_a_pose_correction: false
+      has_arm_extension: false
     } satisfies RigConfigEntry,
     {
       skeleton_type: SkeletonType.Spider,
@@ -84,7 +84,7 @@ export class RigConfig {
       animation_preview_folder: 'spider',
       has_hand_options: false,
       has_head_weight_correction: false,
-      has_a_pose_correction: false
+      has_arm_extension: false
     } satisfies RigConfigEntry
   ]
 
@@ -121,10 +121,31 @@ export class RigConfig {
    */
   static populate_model_select (select: HTMLSelectElement): void {
     select.innerHTML = ''
-    for (const rig of this.all) {
+
+    // also import some custom models that are not the default models for a rig like an A-pose version of human
+    const custom_models = [
+      {
+        model_file: 'test-files/bone-correction-tests/human-a-pose.glb',
+        display_name: 'Human (A-Pose)'
+      }
+    ]
+
+    // combine all the rigs with the custom models needed
+    const model_options = [
+      ...this.all.map((rig) => {
+        return {
+          model_file: rig.model_file,
+          display_name: rig.rig_display_name
+        }
+      }),
+      ...custom_models
+    ]
+
+    // build out HTML options
+    for (const custom of model_options) {
       const option = document.createElement('option')
-      option.value = rig.model_file
-      option.textContent = rig.rig_display_name
+      option.value = custom.model_file
+      option.textContent = custom.display_name
       select.appendChild(option)
     }
   }

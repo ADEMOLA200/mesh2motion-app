@@ -490,6 +490,7 @@ export class StepEditSkeleton extends EventTarget {
     this.edited_armature = armature.clone()
 
     this.create_threejs_skeleton_object()
+    this.independent_bone_movement.set_rest_pose(this.threejs_skeleton)
 
     // Initialize the undo/redo system with the skeleton
     this.undo_redo_system.set_skeleton(this.threejs_skeleton)

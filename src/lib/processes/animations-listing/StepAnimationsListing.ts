@@ -362,7 +362,7 @@ export class StepAnimationsListing extends EventTarget {
     }
 
     // reset A-Pose arm extension button
-    this.ui.dom_reset_a_pose_button?.addEventListener('click', (event) => {
+    this.ui.dom_reset_arm_extension_button?.addEventListener('click', (event) => {
       const extend_arm_value: number = 0 // reset to zero
       if (this.ui.dom_extend_arm_numeric_input !== null) {
         this.ui.dom_extend_arm_numeric_input.value = extend_arm_value.toString()
