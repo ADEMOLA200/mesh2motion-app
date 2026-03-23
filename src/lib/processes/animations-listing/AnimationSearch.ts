@@ -204,9 +204,8 @@ export class AnimationSearch extends EventTarget {
       entries.forEach(entry => {
         const placeholder = entry.target as HTMLElement
 
-        // abort if animation entry is outside active viewing area
+        // abort if animation entry is outside active viewing area (but don't unload - causes popping)
         if (!entry.isIntersecting) {
-          placeholder.innerHTML = ''
           return
         }
 
@@ -232,7 +231,7 @@ export class AnimationSearch extends EventTarget {
         placeholder.innerHTML = ''
         placeholder.appendChild(video)
       })
-    }, { rootMargin: '100px' }) // rootMargin will make sure partially visible elements are also turned into videos
+    }, { rootMargin: '300px' }) // rootMargin pre-loads videos before they scroll into view to reduce popping
 
     // grabs all the animation list elements and tells the observer to start watching them for processing
     const placeholders = this.animation_list_container?.querySelectorAll('.anim-preview-placeholder')
