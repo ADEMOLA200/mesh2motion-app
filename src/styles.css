@@ -88,12 +88,6 @@ nav .active-nav-item, nav a:hover {
     text-decoration: none;
 }
 
-/* span helps have higher specificty than google font material symbols css */
-span.material-symbols-outlined {
-    font-size: 20px;
-}
-
-
 
 /* this was just a star (*) selector, but dark reader extension cannot parse that and crashes 
  It really just targets text related elements, so just use those instead

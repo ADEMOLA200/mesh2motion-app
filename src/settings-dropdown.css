@@ -7,7 +7,6 @@
     border: none;
     cursor: pointer;
     display: inline-flex;
-    align-items: center;
     justify-content: center;
     height: var(--navigation-height);
     width: 48px;
@@ -16,14 +15,13 @@
     border-radius: 0;
     padding: 0;
 }
+#settings-toggle span {
+    align-content: center; /* vertical align icon */
+}
 
 #settings-toggle:hover,
 #settings-toggle[aria-expanded="true"] {
     background: var(--bg-alternate);
-}
-
-#settings-toggle .material-symbols-outlined {
-    font-size: 22px;
 }
 
 #settings-dropdown-content {
