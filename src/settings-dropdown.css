@@ -51,6 +51,11 @@
     font-size: 0.95rem;
 }
 
+#theme-toggle .theme-label {
+    font-size: 0.95rem;
+    margin-left: 0.45rem;
+}
+
 .settings-dropdown-row input[type="checkbox"] {
     width: 16px;
     height: 16px;

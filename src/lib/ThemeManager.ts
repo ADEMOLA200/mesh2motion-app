@@ -2,6 +2,7 @@ export class ThemeManager extends EventTarget {
   private current_theme: 'light' | 'dark' = 'dark'
   private theme_toggle_button: HTMLButtonElement | null = null
   private theme_icon: HTMLElement | null = null
+  private theme_label: HTMLElement | null = null
 
   private theme_change_event: CustomEvent | null = null
 
@@ -14,6 +15,13 @@ export class ThemeManager extends EventTarget {
     // Get DOM elements
     this.theme_toggle_button = document.querySelector('#theme-toggle')
     this.theme_icon = this.theme_toggle_button?.querySelector('.theme-icon') ?? null
+    this.theme_label = this.theme_toggle_button?.querySelector('.theme-label') ?? null
+
+    if (this.theme_toggle_button !== null && this.theme_label === null) {
+      this.theme_label = document.createElement('span')
+      this.theme_label.className = 'theme-label'
+      this.theme_toggle_button.appendChild(this.theme_label)
+    }
 
     // Load saved theme preference
     this.load_theme_preference()
@@ -59,11 +67,15 @@ export class ThemeManager extends EventTarget {
   }
 
   private update_toggle_ui (): void {
-    if (this.theme_icon !== null) {
+    if (this.theme_icon !== null && this.theme_label !== null) {
       if (this.current_theme === 'light') {
         this.theme_icon.textContent = '🌞'
+        this.theme_label.textContent = 'Light'
+        this.theme_toggle_button?.setAttribute('aria-label', 'Theme: Light')
       } else {
         this.theme_icon.textContent = '🌚'
+        this.theme_label.textContent = 'Dark'
+        this.theme_toggle_button?.setAttribute('aria-label', 'Theme: Dark')
       }
     }
   }
