@@ -58,7 +58,7 @@ export default class SkinningAlgorithm {
     weight_calculator.calculate_median_bone_weights(skin_indices, skin_weights)
 
     // Step 2: Smooth weight boundaries between adjacent bones
-    const weight_smoother = new WeightSmoother(this.geometry)
+    const weight_smoother = new WeightSmoother(this.geometry, this.bones_master_data)
     weight_smoother.smooth_bone_weight_boundaries(skin_indices, skin_weights)
     console.timeEnd('calculate_closest_bone_weights')
 
