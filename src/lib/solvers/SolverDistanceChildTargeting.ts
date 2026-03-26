@@ -1,12 +1,13 @@
 import {
   Vector3, Group, Raycaster, type Bone, Mesh,
   MeshBasicMaterial, DoubleSide,
-  BufferAttribute
+  BufferAttribute,
+  BufferGeometry,
+  Object3D
 } from 'three'
 
 import { Utility } from '../Utilities.js'
 import { SkeletonType } from '../enums/SkeletonType.js'
-import { AbstractAutoSkinSolver } from './AbstractAutoSkinSolver.js'
 import { Generators } from '../Generators.js'
 import { HeadWeightCorrector } from './HeadWeightCorrector.js'
 
@@ -15,10 +16,59 @@ import { HeadWeightCorrector } from './HeadWeightCorrector.js'
  * This works very similar to the normal distance + child solver
   * This adds extra logic to target ares in the arms and hips to help with assigning weights
  */
-export default class SolverDistanceChildTargeting extends AbstractAutoSkinSolver {
+export default class SolverDistanceChildTargeting {
+  protected bones_master_data: Bone[] = []
+  protected geometry: BufferGeometry = new BufferGeometry()
+  protected show_debug: boolean = false
+  protected bone_idx_test: number = -1
+  protected skeleton_type: SkeletonType | null = null
+  protected debugging_scene_object: Object3D = new Object3D()
+
   // Head weight correction properties
   private use_head_weight_correction: boolean = false
   private preview_plane_height: number = 1.4
+
+  constructor (bone_hier: Object3D, skeleton_type: SkeletonType) {
+    this.set_skeleton_type(skeleton_type)
+    this.bones_master_data = Utility.bone_list_from_hierarchy(bone_hier)
+  }
+
+  public set_geometry (geom: BufferGeometry): void {
+    this.geometry = geom
+  }
+
+  public get_geometry (): BufferGeometry {
+    return this.geometry
+  }
+
+  public set_show_debug (debug_value: boolean): void {
+    this.show_debug = debug_value
+  }
+
+  public set_bone_index_to_test (bone_idx: number): void {
+    this.bone_idx_test = bone_idx
+  }
+
+  public set_debugging_scene_object (scene_object: Object3D): void {
+    this.debugging_scene_object = scene_object
+  }
+
+  public set_skeleton_type (skinning_type: SkeletonType): void {
+    this.skeleton_type = skinning_type
+  }
+
+  public get_bone_master_data (): Bone[] {
+    return this.bones_master_data
+  }
+
+  protected geometry_vertex_count (): number {
+    if (this.geometry === null) {
+      console.error('Geometry is null. cannot get vertex count')
+      return -1
+    }
+
+    return this.geometry.attributes.position.array.length / 3
+  }
 
   public calculate_indexes_and_weights (): number[][] {
     // There can be multiple objects that need skinning, so
