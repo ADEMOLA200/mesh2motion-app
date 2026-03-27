@@ -58,8 +58,13 @@ export class BoneClassifier {
   private classify_bone (bone: Bone): BoneCategory {
     const name = bone.name.toLowerCase()
 
-    // Torso bones: spine, chest, hips, pelvis, neck
-    const torso_keywords = ['spine', 'chest', 'hips', 'pelvis', 'neck', 'torso', 'abdomen', 'body']
+    // Torso bones: spine, chest, hips, pelvis, neck, wings, tails
+    // tails and feathers aren't technically torso, but we want
+    // to give them more smoothing since they aren't as rigid
+    const torso_keywords = [
+      'spine', 'chest', 'hips', 'pelvis', 'neck', 'torso', 'abdomen', 'body',
+      'wing', 'feather', 'tail'
+    ]
     if (torso_keywords.some(kw => name.includes(kw))) {
       return BoneCategory.Torso
     }
