@@ -34,50 +34,24 @@ export class Generators {
 
       <p style="margin-top: 1rem;">Check out the <a href="https://github.com/Mesh2Motion" target="_blank">project's guide</a> for instructions on contributing.
       </p>
-      </span>
+      <p>
+        Ask questions or provide feedback  <a href="https://discord.gg/UChE936q7y" target="_blank" rel="noopener noreferrer"> on the Discord Server</a>
+      </p> 
+     
+
+    </span>
     `
   }
 
   static get_learning_resources_html (): string {
     return `
-    <div class="learning-resources-content">
-      <div class="learning-video-list">
-        <div class="learning-video-item">
-          <a href="https://youtu.be/wea_ZFhY5MM" target="_blank" rel="noopener noreferrer">Mesh2Motion Asset Files and Organization</a>
-          <iframe
-            src="https://www.youtube.com/embed/wea_ZFhY5MM?si=wpiSz2pNjbfmCjXy"
-            title="Mesh2Motion Asset Files and Organization"
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen
-          ></iframe>
-        </div>
+      <p> 
+        <a href="https://www.youtube.com/@Mesh2Motion_App" target="_blank" rel="noopener noreferrer">Visit YouTube Channel</a> - Tutorials and demos of the app.
+      </p> 
 
-
-        <div class="learning-video-item">
-          <a href="https://youtu.be/37jW10Nk8aY" target="_blank" rel="noopener noreferrer">Create and Export Animations with Mesh2Motion and Blender</a>
-          <iframe
-            src="https://www.youtube.com/embed/37jW10Nk8aY?si=EFUSgzuc7Dm555PI"
-            title="Create and Export Animations with Mesh2Motion and Blender"
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen
-          ></iframe>
-        </div>
-
-        <div class="learning-video-item">
-          <a href="https://youtu.be/Zp4F-uL8k2E" target="_blank" rel="noopener noreferrer">Blender Animation Tips for Mesh2Motion</a>
-          <iframe
-            src="https://www.youtube.com/embed/Zp4F-uL8k2E?si=iYZYgTRvVnvg3wJI"
-            title="Blender Animation Tips for Mesh2Motion"
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen
-          ></iframe>
-        </div>
-
-      </div>
-    </div>
+      <p>
+        <a href="https://discord.gg/UChE936q7y" target="_blank" rel="noopener noreferrer"> Visit Discord Server</a>  - Ask questions or provide feedback  
+      </p> 
     `
   }
 
